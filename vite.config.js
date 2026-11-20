@@ -1,11 +1,20 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
 export default defineConfig({
-    assetsInclude: ['**/*.hdr'],
-    plugins: [react()],
-    
-    sourcemap: true,
-
+  plugins: [react()],
+  build: {
+    sourcemap: false,
+    // The WebGL stack is only reached through a dynamic import in the archive
+    // page, so Rollup keeps it in its own chunk. (A manualChunks rule here
+    // pulled shared helpers into that chunk and made every page preload it.)
+    chunkSizeWarningLimit: 1500,
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/tests/setup.js"],
+    include: ["src/**/*.test.{js,jsx}"],
+    css: false,
+  },
 });

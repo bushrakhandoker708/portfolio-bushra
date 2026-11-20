@@ -1,136 +1,65 @@
-# Portfolio of Bushra Khandoker
+# Bushra Khandoker: portfolio
 
-> A dynamic, interactive, and visually stunning portfolio website showcasing my STEM projects, artistic work, achievements, and more.
+Source for my academic and research portfolio. I am a Computer Science undergraduate at Swansea University working on AI/ML engineering and independent research into reliable, resource-efficient language models.
 
----
+The site is built for readers assessing research potential, so every result links to the file it comes from, uncertainty is shown, and unfinished work is labelled as unfinished.
 
-## Table of Contents
+## Stack
 
-1. [Overview](#overview)
-2. [Demo](#demo)
-3. [Features](#features)
-4. [Built With](#built-with)
-5. [Getting Started](#getting-started)
+- React 18, React Router 7, Vite 6, Tailwind CSS 3 (with CSS-variable design tokens)
+- Static prerendering: every route is rendered to HTML at build time (`scripts/prerender.mjs`) and hydrated in the browser
+- three.js / react-three-fiber / cannon only on `/archive`, loaded on demand
+- Vitest + Testing Library (unit), Playwright + axe-core (end-to-end and accessibility)
 
-   * [Prerequisites](#prerequisites)
-   * [Installation](#installation)
-   * [Available Scripts](#available-scripts)
-6. [Project Structure](#project-structure)
-7. [Section Breakdown](#section-breakdown)
-8. [Contributing](#contributing)
-9. [License](#license)
-10. [Contact](#contact)
+## Getting started
 
----
+Requires Node.js 20 or newer.
 
-## Overview
+```bash
+npm ci
+npm run dev          # development server at http://localhost:5173
+```
 
-This repository contains the source code for my personal portfolio website built with React and modern web technologies. It demonstrates my expertise in frontend development, 3D visualization, animations, and project showcases.
+| Script | Purpose |
+|---|---|
+| `npm run build` | Client build, SSR build, then prerender all routes, 404, redirects, sitemap and robots into `dist/` |
+| `npm run preview` | Serve `dist/` the way Vercel does (clean URLs, redirects, 404 status, compression) on port 4173 |
+| `npm run lint` | ESLint |
+| `npm test` | Unit tests |
+| `npm run test:e2e` | Playwright tests against the built site (run `npm run build` first) |
+| `npm run images` | Re-encode source images from `legacy-assets/` to WebP (Python + Pillow) |
+| `node scripts/screenshots.mjs` | Regenerate `docs/screenshots/after/` (needs `npm run preview` running) |
 
-## Demo
-
-> **Live Site:** [https://bushraabir.github.io/portfolio-bushra/](https://bushraabir.github.io/portfolio-bushra/)
-
-## Features
-
-* **Smooth Scroll Animations** powered by Framer Motion & GSAP
-* **Particle & 3D Backgrounds** with `tsparticles` & `@react-three/fiber`
-* **Lazy Loading** for performance optimizations
-* **Vertical Timeline** showcasing academic and STEM achievements
-* **Gallery & Carousel** components for projects and initiatives
-* **Responsive Design** with Tailwind CSS and custom media queries
-* **Lottie Animations** for engaging motion graphics
-* **Countup & Typewriter Effects** for interactive stats and titles
-* **AOS** scroll animations for additional flair
-
-## Built With
-
-* [React](https://reactjs.org/)
-* [Tailwind CSS](https://tailwindcss.com/)
-* [Framer Motion](https://www.framer.com/motion/)
-* [GSAP & ScrollTrigger](https://greensock.com/)
-* [react-three-fiber](https://github.com/pmndrs/react-three-fiber)
-* [tsparticles](https://github.com/matteobruni/tsparticles)
-* [AOS](https://michalsnik.github.io/aos/)
-* [react-vertical-timeline-component](https://github.com/stephane-monnot/react-vertical-timeline)
-* [react-lazy-load-image-component](https://github.com/Aljullu/react-lazy-load-image-component)
-* [Typewriter Effect](https://github.com/tameemsafi/typewriterjs)
-* [CountUp.js](https://github.com/inorganik/CountUp.js)
-
-## Getting Started
-
-### Prerequisites
-
-* Node.js v14+
-* npm or yarn
-
-### Installation
-
-1. **Clone the repo**
-
-   ```bash
-   git clone https://github.com/Bushraabir/portfolio.git
-   cd portfolio
-   ```
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-3. **Run locally**
-
-   ```bash
-   npm start
-   # or
-   yarn start
-   ```
-4. Open [http://localhost:3000](http://localhost:3000) to view in the browser.
-
-### Available Scripts
-
-| Command         | Description                               |
-| --------------- | ----------------------------------------- |
-| `npm start`     | Runs the app in development mode.         |
-| `npm run build` | Builds the app for production.            |
-| `npm test`      | Launches the test runner (if configured). |
-
-## Project Structure
+## Structure
 
 ```
 src/
-├── assets/        # Images, Lottie JSON, 3D models
-├── components/    # Reusable UI components, ErrorBoundary, Loader
-├── sections/      # Page sections (Hero, Websites, AboutMe, Achievements, etc.)
-├── App.jsx        # Entry point with React Router
-├── index.css      # Global styles & Tailwind imports
-└── index.js       # React DOM render
+  data/          all site content: profile, education, research, projects, mlLab, achievements, archive, pages (route metadata)
+  pages/         one component per route
+  components/    layout, UI primitives, research charts, archive sketch
+  styles/        tokens, fonts, base styles
+  tests/         unit tests
+  entry-client.jsx / entry-server.jsx
+e2e/             Playwright tests
+scripts/         prerender, local server, screenshots, image optimisation
+docs/            audit, content inventory, verification list, design system, test report, release checklist
 ```
 
-## Section Breakdown
+Content is separate from layout. To change what the site says, edit `src/data/`. Research figures are pinned by tests, so update the data and the test together when new results arrive.
 
-* **Home:** Hero intro with particle/3D background and toggleable sidebar navigation
-* **Websites:** Showcase of personal & collaborative STEM web projects
-* **Research & Art:** Highlights of research work and creative portfolios
-* **Organization:** Gallery of non-profit initiatives with carousel & Lottie
-* **About Me:** Interactive narrative with custom particle background
-* **Achievements:** Vertical timeline of academic, leadership, and STEM honors
-* **Skills & Gallery:** Skillset list and image gallery
-* **Testimonials:** Appreciations & endorsements
-* **Footer:** Contact links and social profiles
+## Documentation
 
-## Contributing
+- [Portfolio audit](docs/PORTFOLIO_AUDIT.md): the baseline and why things changed
+- [Content inventory](docs/CONTENT_INVENTORY.md): what was removed, kept and added
+- [Content verification](docs/CONTENT_VERIFICATION.md): facts awaiting confirmation
+- [Design system](docs/DESIGN_SYSTEM.md)
+- [Test report](docs/TEST_REPORT.md): results, before/after metrics
+- [Release checklist](docs/RELEASE_CHECKLIST.md): deployment, rollback, release notes
 
-Contributions are welcome! If you'd like to improve or add features, please open an issue or submit a pull request.
+## Deployment
 
+Deployed on Vercel from `main`. `vercel.json` defines the build, clean URLs, redirects from the previous site's routes, and caching. See the release checklist for preview, production and rollback steps.
 
 ## Contact
 
-* **Name:** Bushra Khandoker
-* **Email:** [bushrakhandoker2@gmail.com](mailto:bushrakhandoker2@gmail.com)
-* **GitHub:** [@Bushraabir](https://github.com/Bushraabir)
-
----
-
-*Thank you for visiting my portfolio!*
+[bushrakhandoker2@gmail.com](mailto:bushrakhandoker2@gmail.com) · [github.com/bushrakhandoker708](https://github.com/bushrakhandoker708)

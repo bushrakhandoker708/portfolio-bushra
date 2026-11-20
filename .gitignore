@@ -51,3 +51,9 @@ src/assets/recommendation/
 # Outdated CV (contains BUET, phone number, EmpowerEd) - do not publish
 src/assets/resume/
 .claude/
+
+# Original full-size assets kept locally only (optimised copies live in src/assets/img)
+legacy-assets/
+dist-ssr/
+test-results/
+playwright-report/
