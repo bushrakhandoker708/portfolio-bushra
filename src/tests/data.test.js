@@ -73,3 +73,28 @@ describe("evidence-based skill claims", () => {
     for (const p of otherProjects) expect(p.links.length, p.title).toBeGreaterThan(0);
   });
 });
+
+describe("GitHub sync data", async () => {
+  const github = (await import("../data/github.json")).default;
+  const { activity, formatDay } = await import("../data/github");
+
+  it("has activity for every project that names a repository, and only listed repositories", () => {
+    const named = [...projects, ...otherProjects].map((p) => p.repo).filter(Boolean);
+    for (const r of named) expect(activity(r), r).not.toBeNull();
+    const allowed = new Set([...named, "relevia-research"]);
+    for (const key of Object.keys(github.repos)) expect(allowed.has(key), key).toBe(true);
+  });
+
+  it("stores only dates and counts, never content", () => {
+    for (const a of Object.values(github.repos)) {
+      expect(Object.keys(a).sort()).toEqual(["archived", "branch", "commits", "lastCommit", "url"]);
+      expect(a.lastCommit).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(Number.isInteger(a.commits)).toBe(true);
+    }
+  });
+
+  it("formats dates deterministically", () => {
+    expect(formatDay("2026-06-04")).toBe("4 June 2026");
+    expect(formatDay("2026-06-04", true)).toBe("June 2026");
+  });
+});

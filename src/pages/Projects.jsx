@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RepoActivity from "../components/RepoActivity";
 import { projects, otherProjects } from "../data/projects";
 import { PageHeader, Section, SmartLink, TagList } from "../components/ui";
 import { Reveal, RevealGroup, RevealItem, Tilt } from "../components/motion";
@@ -39,11 +40,13 @@ export default function Projects() {
                   <p className="poetic mt-2 text-xl">{p.tagline}</p>
                   <p className="mt-3 text-muted">{p.summary}</p>
                   <p className="mt-4 text-sm text-faint">{p.period}</p>
+                  <RepoActivity repo={p.repo} short />
                   <div className="mt-5">
                     <TagList items={p.tech.slice(0, 6)} label={`${p.title} technologies`} />
                   </div>
                   <p className="mt-6 font-label text-sm font-semibold text-accent">
-                    {p.thinking.length} forks · {p.pushback.length} problems solved <span aria-hidden="true">→</span>
+                    {p.thinking.length} {p.thinking.length === 1 ? "fork" : "forks"} · {p.pushback.length} {p.pushback.length === 1 ? "problem" : "problems"} solved{" "}
+                    <span aria-hidden="true">→</span>
                   </p>
                 </div>
               </Tilt>
@@ -62,6 +65,7 @@ export default function Projects() {
                   <span className="num text-xs text-faint">{p.year}</span>
                 </div>
                 <p className="mt-2 flex-1 text-sm text-muted">{p.summary}</p>
+                <RepoActivity repo={p.repo} short className="mt-3" />
                 <div className="mt-4">
                   <TagList items={p.tech} label={`${p.title} technologies`} />
                 </div>

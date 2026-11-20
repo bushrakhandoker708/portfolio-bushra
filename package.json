@@ -8,13 +8,14 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build": "node scripts/github-sync.mjs && vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "node scripts/serve.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "images": "python scripts/optimise_images.py"
+    "images": "python scripts/optimise_images.py",
+    "sync:github": "node scripts/github-sync.mjs"
   },
   "dependencies": {
     "@fontsource-variable/playfair-display": "^5.3.0",

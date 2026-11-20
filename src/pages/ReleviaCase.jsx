@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RepoActivity from "../components/RepoActivity";
 import { relevia as r } from "../data/research";
 import { Callout, ExternalLink, PageHeader, ScrollRegion, Section, StatusBadge } from "../components/ui";
 import { ChartFigure, ConfusionMatrix, DataTable, IntervalPlot, Pipeline, ProportionPlot, fmt, pct } from "../components/research/charts";
@@ -27,6 +28,7 @@ export default function ReleviaCase() {
           <StatusBadge state="partial">{r.status}</StatusBadge>
           <span className="text-sm text-faint">{r.period}</span>
         </div>
+        <RepoActivity repo="relevia-research" className="mt-3" />
         <p className="lede mt-5">{r.summary}</p>
         <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <li>

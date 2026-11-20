@@ -188,6 +188,7 @@ export const relevia = {
 export const researchIndex = [
   {
     slug: "relevia",
+    repo: "relevia-research",
     href: "/research/relevia",
     title: relevia.title,
     status: relevia.status,

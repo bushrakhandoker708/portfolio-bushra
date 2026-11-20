@@ -64,3 +64,14 @@ Deployed on Vercel from `main`. `vercel.json` defines the build, clean URLs, red
 ## Contact
 
 [bushrakhandoker2@gmail.com](mailto:bushrakhandoker2@gmail.com) · [github.com/bushrakhandoker708](https://github.com/bushrakhandoker708)
+
+## GitHub activity sync
+
+`npm run build` starts with `scripts/github-sync.mjs` (also `npm run sync:github`). It fetches the last commit date and commit count for an explicit list of public repositories and writes them to `src/data/github.json`, which is committed. The site shows them as "95 commits · last commit 4 June 2026", with an "Active" marker when the last commit is within 30 days of the sync.
+
+- Only dates and counts are synced. The project stories, research numbers and all other text stay hand-written and verified.
+- Only the repositories listed in the script are fetched; a repository that is private is skipped.
+- If GitHub is unreachable or rate-limited, the last saved file is used and the build carries on.
+- Public repositories need no token. Set `GITHUB_TOKEN` in the build environment only if the 60-requests-per-hour anonymous limit is reached.
+- The numbers refresh whenever the site is rebuilt. To keep them current without pushing, add a Vercel Deploy Hook and call it on a schedule (for example a weekly GitHub Actions workflow).
+

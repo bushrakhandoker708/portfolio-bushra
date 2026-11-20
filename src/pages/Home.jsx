@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RepoActivity from "../components/RepoActivity";
 import { profile } from "../data/profile";
 import { relevia } from "../data/research";
 import { projects } from "../data/projects";
@@ -147,6 +148,7 @@ export default function Home() {
                   </h3>
                   <p className="poetic mt-1 text-lg">{p.tagline}</p>
                   <p className="mt-3 flex-1 text-sm text-muted">{p.summary}</p>
+                  <RepoActivity repo={p.repo} short className="mt-3" />
                   <div className="mt-4">
                     <TagList items={p.tech.slice(0, 4)} label={`${p.title} technologies`} />
                   </div>

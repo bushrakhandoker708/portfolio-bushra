@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RepoActivity from "../components/RepoActivity";
 import { researchIndex } from "../data/research";
 import { interests, currentInvestigations } from "../data/profile";
 import { PageHeader, Section, StatusBadge, TagList } from "../components/ui";
@@ -34,6 +35,7 @@ export default function Research() {
                 </Link>
               </h3>
               <p className="mt-3 max-w-prose text-muted">{s.summary}</p>
+              <RepoActivity repo={s.repo} className="mt-3" />
               <div className="mt-5">
                 <TagList items={s.tags} label="Topics" />
               </div>

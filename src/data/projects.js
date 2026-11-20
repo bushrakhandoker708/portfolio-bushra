@@ -14,6 +14,7 @@ import studyBuddy from "../assets/img/studybuddy-home.webp";
  *   pushback   where it fought back: { title, expected, observed, found, changed }
  *   checked    how I know it works (and where I don't yet)
  *   limitations, future   what is still open
+ *   repo       GitHub repository key for the synced activity line (data/github.json)
  *   scene      the interactive 3D piece shown in the header (components/cosmos/Gem.jsx)
  *
  * Only what the repository, its commits or its design notes show. Where a
@@ -23,6 +24,7 @@ import studyBuddy from "../assets/img/studybuddy-home.webp";
 export const projects = [
   {
     slug: "studybuddy",
+    repo: "study-buddy",
     title: "StudyBuddy",
     tagline: "A graphing engine that refuses to lie to students",
     cover: { src: studyBuddy, alt: "StudyBuddy landing page: Study smarter, glow harder", w: 1200, h: 750 },
@@ -90,6 +92,7 @@ export const projects = [
   },
   {
     slug: "bushal",
+    repo: "bushal",
     title: "Bushal",
     tagline: "Teaching a shop to count stock exactly once",
     cover: { src: bushalStore, alt: "Bushal storefront headline: Crafted for Modern Heritage", w: 700, h: 500 },
@@ -173,6 +176,7 @@ export const projects = [
   },
   {
     slug: "relevia-app",
+    repo: "relevia",
     title: "Relevia",
     tagline: "A supportive chat that keeps your words on your device",
     cover: { src: releviaApp, alt: "Relevia home screen with breathing, grounding and chat tools", w: 1440, h: 900 },
@@ -249,6 +253,7 @@ export const projects = [
   },
   {
     slug: "hexalock",
+    repo: "HEXALOCK",
     title: "HEXALOCK",
     tagline: "A parcel locker is not a door problem",
     cover: { src: hexDashboard, alt: "HEXALOCK dashboard with six compartment indicators beside the Simulink model", w: 1600, h: 708 },
@@ -334,6 +339,7 @@ export const projects = [
 export const otherProjects = [
   {
     title: "PhyCode",
+    repo: "PhyCode",
     year: "2025",
     summary: "Algorithm problems set inside physics: projectile paths, forces and waves. Code runs through a Judge0 API route; the August 2025 commits show the work of wiring up Judge0 and fixing the Vercel build.",
     tech: ["Next.js", "TypeScript", "Judge0", "Firebase Auth"],
@@ -341,6 +347,7 @@ export const otherProjects = [
   },
   {
     title: "Periodic table visualiser",
+    repo: "periodic_table_visualizer",
     year: "2024–25",
     summary: "A Streamlit and Plotly app for filtering element data, plotting property trends against atomic number and exploring how properties relate in 3D.",
     tech: ["Python", "Streamlit", "Plotly", "pandas"],

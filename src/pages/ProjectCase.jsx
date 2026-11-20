@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import RepoActivity from "../components/RepoActivity";
 import { getProject } from "../data/projects";
 import { Figure, PageHeader, Section, SmartLink, TagList } from "../components/ui";
 import { Reveal, RevealGroup, RevealItem } from "../components/motion";
@@ -117,6 +118,7 @@ export default function ProjectCase() {
         <p className="mt-5 text-sm text-faint">
           {p.status} · {p.period}
         </p>
+        <RepoActivity repo={p.repo} className="mt-1" />
         <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           {p.links.map((l) => (
             <li key={l.href}>
