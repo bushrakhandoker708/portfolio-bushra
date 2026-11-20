@@ -5,6 +5,7 @@ import { LAST_UPDATED, ART_PORTFOLIO } from "../../data/site";
 import { usePageMeta } from "../../hooks/usePageMeta";
 import { AnimatePresence, m } from "framer-motion";
 import { MotionProvider } from "../motion";
+import { CopyEmail, mailto } from "../Contact";
 import cosmosLg from "../../assets/img/cosmos.webp";
 import cosmosSm from "../../assets/img/cosmos-sm.webp";
 
@@ -92,8 +93,9 @@ function SiteFooter() {
           </p>
         </div>
         <ul className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Contact">
-          <li>
-            <a href={`mailto:${profile.email}`}>{profile.email}</a>
+          <li className="flex flex-wrap items-center gap-3">
+            <a href={mailto("Hello from your portfolio")}>{profile.email}</a>
+            <CopyEmail />
           </li>
           <li>
             <a href={profile.links.github} target="_blank" rel="noopener noreferrer">

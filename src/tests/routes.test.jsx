@@ -101,3 +101,18 @@ describe("home", () => {
     expect(document.querySelector("canvas")).toBeNull();
   });
 });
+
+describe("contact", () => {
+  it("topic buttons pre-fill the subject and copy puts the address on the clipboard", async () => {
+    const writeText = vi.fn().mockResolvedValue();
+    Object.assign(navigator, { clipboard: { writeText } });
+    renderAt("/");
+    fireEvent.click(screen.getByRole("button", { name: "Research" }));
+    expect(screen.getByRole("button", { name: "Research" })).toHaveAttribute("aria-pressed", "true");
+    const write = screen.getByRole("link", { name: /Write to me/ });
+    expect(write.getAttribute("href")).toMatch(/^mailto:[^?]+\?subject=Research/);
+    fireEvent.click(screen.getAllByRole("button", { name: "Copy email" })[0]);
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/@/));
+    expect(await screen.findByText("Copied ✓")).toBeInTheDocument();
+  });
+});

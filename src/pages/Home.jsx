@@ -3,10 +3,11 @@ import { profile } from "../data/profile";
 import { relevia } from "../data/research";
 import { projects } from "../data/projects";
 import { artHighlights, ART_PORTFOLIO } from "../data/archive";
-import { Section, StatusBadge, TagList, ExternalLink } from "../components/ui";
+import { Section, StatusBadge, TagList } from "../components/ui";
 import { Reveal, RevealGroup, RevealItem, Tilt } from "../components/motion";
 import { fmt } from "../components/research/charts";
 import HeroUniverse from "../components/cosmos/HeroUniverse";
+import { ContactCard } from "../components/Contact";
 import portrait from "../assets/img/portrait.webp";
 
 function Hero() {
@@ -194,15 +195,8 @@ export default function Home() {
 
       {/* Contact */}
       <Section id="contact" eyebrow="Contact" title="Get in touch" accent="sky">
-        <Reveal className="card relative overflow-hidden p-8 sm:p-10">
-          <span aria-hidden="true" className="bubble absolute -right-10 -top-10 h-40 w-40 opacity-80" />
-          <span aria-hidden="true" className="bubble absolute bottom-6 right-36 h-12 w-12 opacity-70" />
-          <p className="poetic text-2xl">Every algorithm starts with a question.</p>
-          <p className="prose-body mt-4">
-            If you would like to talk about research, postgraduate study or something you are building, I would love to hear from you.
-            Email is the best way to reach me:{" "}
-            <a href={`mailto:${profile.email}`}>{profile.email}</a>. Code is on <ExternalLink href={profile.links.github}>GitHub</ExternalLink>.
-          </p>
+        <Reveal>
+          <ContactCard />
         </Reveal>
       </Section>
     </>
