@@ -17,11 +17,13 @@
     "images": "python scripts/optimise_images.py"
   },
   "dependencies": {
-    "@fontsource-variable/newsreader": "^5.1.1",
-    "@fontsource/ibm-plex-mono": "^5.1.1",
+    "@fontsource-variable/playfair-display": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/ibm-plex-sans": "^5.1.1",
+    "@fontsource/jura": "^5.3.0",
     "@react-three/cannon": "^6.6.0",
     "@react-three/fiber": "^8.17.14",
+    "framer-motion": "^11.18.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.1",

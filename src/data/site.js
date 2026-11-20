@@ -12,3 +12,6 @@ export const repoTree = (repo, path = "", branch = "main") =>
   path
     ? `https://github.com/${GITHUB_USER}/${repo}/tree/${branch}/${path.split("/").map(encodeURIComponent).join("/")}`
     : `https://github.com/${GITHUB_USER}/${repo}`;
+
+// Bushra's separate art portfolio.
+export const ART_PORTFOLIO = "https://art-portfolio-rust.vercel.app/";

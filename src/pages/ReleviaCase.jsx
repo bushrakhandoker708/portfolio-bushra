@@ -22,7 +22,7 @@ export default function ReleviaCase() {
   const exclMean = r.latency.elapsed[1];
   return (
     <article>
-      <PageHeader eyebrow="Research · case study" title={r.title}>
+      <PageHeader eyebrow="Research story" title={r.title}>
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge state="partial">{r.status}</StatusBadge>
           <span className="text-sm text-faint">{r.period}</span>
@@ -58,7 +58,7 @@ export default function ReleviaCase() {
         </ol>
       </nav>
 
-      <Section id="motivation" title="Motivation">
+      <Section id="motivation" title="Motivation" accent="gold">
         <div className="prose-body">
           {r.motivation.map((p) => (
             <p key={p.slice(0, 24)}>{p}</p>
@@ -66,7 +66,7 @@ export default function ReleviaCase() {
         </div>
       </Section>
 
-      <Section id="question" title="Research question and hypotheses">
+      <Section id="question" title="Research question and hypotheses" accent="teal">
         <blockquote className="max-w-prose border-l-2 border-lavender pl-5 font-serif text-xl text-ink">{r.question}</blockquote>
         <ul className="mt-8 grid max-w-4xl gap-4">
           {r.hypotheses.map((h) => (
@@ -84,7 +84,7 @@ export default function ReleviaCase() {
         </ul>
       </Section>
 
-      <Section id="method" title="Method">
+      <Section id="method" title="Method" accent="rose">
         <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
           <div>
             <h3 className="mb-3 text-lg font-medium">Conditions</h3>
@@ -120,7 +120,7 @@ export default function ReleviaCase() {
         <Pipeline steps={r.pipeline} />
       </Section>
 
-      <Section id="experiment" title="Prompting pilot: developed vs minimal prompt">
+      <Section id="experiment" title="Prompting pilot: developed vs minimal prompt" accent="sky">
         <div className="prose-body mb-8">
           <p>
             {r.pilot.responses} responses were generated for {r.pilot.n} held-out synthetic scenarios, with no runtime failures. The prompt was
@@ -150,7 +150,7 @@ export default function ReleviaCase() {
         </ChartFigure>
       </Section>
 
-      <Section id="compliance" title="Instruction compliance at a larger scale">
+      <Section id="compliance" title="Instruction compliance at a larger scale" accent="lavender">
         <div className="prose-body mb-8">
           <p>
             An extension generated all {r.compliance.n * 2} responses for {r.compliance.n} new synthetic scenarios. These outputs are{" "}
@@ -177,7 +177,7 @@ export default function ReleviaCase() {
         </ChartFigure>
       </Section>
 
-      <Section id="latency" title="Inference cost, and a confound I found">
+      <Section id="latency" title="Inference cost, and a confound I found" accent="gold">
         <div className="prose-body mb-8">
           <p>
             At first, B seemed to finish {Math.abs(allMean.mean).toFixed(1)} s sooner on average. Two pairs overlapped a Windows Modern Standby
@@ -258,7 +258,7 @@ export default function ReleviaCase() {
         </div>
       </Section>
 
-      <Section id="safety" title="Safety routing: measured on cases frozen in advance">
+      <Section id="safety" title="Safety routing: measured on cases frozen in advance" accent="teal">
         <div className="prose-body mb-8">
           <p>
             Before inference, a deterministic rule set decides whether a message needs an urgent-support response. S2 applies the S1 rules after
@@ -300,7 +300,7 @@ export default function ReleviaCase() {
         </p>
       </Section>
 
-      <Section id="negative" title="Negative results and anomalies, kept on the record">
+      <Section id="negative" title="Negative results and anomalies, kept on the record" accent="rose">
         <ul className="list-dash max-w-prose space-y-3 text-muted">
           {r.negativeResults.map((n) => (
             <li key={n.slice(0, 30)}>{n}</li>
@@ -308,7 +308,7 @@ export default function ReleviaCase() {
         </ul>
       </Section>
 
-      <Section id="reproducibility" title="Reproducibility">
+      <Section id="reproducibility" title="Reproducibility" accent="sky">
         <ul className="list-dash max-w-prose space-y-3 text-muted">
           {r.reproducibility.map((n) => (
             <li key={n.slice(0, 30)}>{n}</li>
@@ -324,7 +324,7 @@ export default function ReleviaCase() {
         </ul>
       </Section>
 
-      <Section id="limitations" title="Limitations">
+      <Section id="limitations" title="Limitations" accent="lavender">
         <ul className="list-dash max-w-prose space-y-3 text-muted">
           {r.limitations.map((n) => (
             <li key={n.slice(0, 30)}>{n}</li>
@@ -332,7 +332,7 @@ export default function ReleviaCase() {
         </ul>
       </Section>
 
-      <Section id="next" title="Next steps">
+      <Section id="next" title="Next steps" accent="gold">
         <ol className="max-w-prose list-decimal space-y-3 pl-5 text-muted marker:text-faint">
           {r.next.map((n) => (
             <li key={n.slice(0, 30)}>{n}</li>

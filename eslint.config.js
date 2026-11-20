@@ -26,7 +26,12 @@ export default [
     },
   },
   {
-    files: ["src/**/*.test.{js,jsx}", "src/tests/**", "e2e/**"],
+    // The 3D scene is React Three Fiber: its JSX props are three.js properties, not DOM attributes.
+    files: ["src/components/cosmos/**"],
+    rules: { "react/no-unknown-property": "off" },
+  },
+  {
+    files: ["src/tests/**/*.{js,jsx}", "src/**/*.test.{js,jsx}", "e2e/**"],
     languageOptions: { globals: { ...globals.browser, ...globals.node, ...globals.vitest } },
   },
 ];

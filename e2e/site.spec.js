@@ -7,6 +7,7 @@ const ROUTES = [
   "/research/relevia",
   "/ml-lab",
   "/projects",
+  "/projects/studybuddy",
   "/projects/hexalock",
   "/projects/bushal",
   "/projects/relevia-app",
@@ -131,23 +132,46 @@ test("mobile menu opens, closes with Escape and returns focus", async ({ page, i
   await expect(button).toBeFocused();
 });
 
-test("the archive loads WebGL only after the visitor asks", async ({ page }) => {
-  const scripts = [];
-  page.on("request", (r) => r.resourceType() === "script" && scripts.push(r.url()));
-  await page.goto("/archive");
-  await page.waitForLoadState("networkidle");
-  expect(scripts.some((u) => u.includes("BubbleSketch"))).toBe(false);
-  await page.getByRole("button", { name: "Start the physics sketch" }).click();
-  await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByRole("button", { name: /Pause|Play/ })).toBeVisible();
+test("the home page starts the bubble universe, and it can be paused and cleared", async ({ page, isMobile }) => {
+  await page.goto("/");
+  // Desktop: starts on its own once the page is idle. Phone: waits for the first touch.
+  if (isMobile) {
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("[data-hero] canvas")).toHaveCount(0);
+    await page.touchscreen.tap(6, 130);
+  }
+  await expect(page.locator("[data-hero] canvas")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText(/^\d+ \/ \d+ bubbles$/)).toBeVisible();
+  const pause = page.getByRole("button", { name: "Pause" });
+  await pause.click();
+  await expect(page.getByRole("button", { name: "Play" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Clear" }).click();
+  await expect(page.getByText(/^0 \//)).toBeVisible();
 });
 
-test("pages other than the archive never request the WebGL bundle", async ({ page }) => {
+test("project pages load their 3D piece lazily and it survives taps", async ({ page, isMobile }) => {
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/projects/hexalock");
+  if (isMobile) {
+    // Tap only once the page has hydrated, or the listener is not there yet.
+    await page.waitForLoadState("networkidle");
+    await page.touchscreen.tap(6, 130);
+  }
+  const canvas = page.locator("[data-scene] canvas");
+  await expect(canvas).toBeVisible({ timeout: 20000 });
+  const box = await canvas.boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.click(box.x + box.width / 3, box.y + box.height / 3);
+  expect(errors).toEqual([]);
+});
+
+test("pages other than home never request the WebGL bundle", async ({ page }) => {
   const scripts = [];
   page.on("request", (r) => r.resourceType() === "script" && scripts.push(r.url()));
-  for (const r of ["/", "/research/relevia", "/projects"]) {
+  for (const r of ["/research/relevia", "/projects", "/archive", "/about"]) {
     await page.goto(r);
     await page.waitForLoadState("networkidle");
   }
-  expect(scripts.filter((u) => u.includes("BubbleSketch"))).toEqual([]);
+  expect(scripts.filter((u) => u.includes("BubbleUniverse"))).toEqual([]);
 });

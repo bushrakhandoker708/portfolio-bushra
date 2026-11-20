@@ -8,7 +8,8 @@ The site is built for readers assessing research potential, so every result link
 
 - React 18, React Router 7, Vite 6, Tailwind CSS 3 (with CSS-variable design tokens)
 - Static prerendering: every route is rendered to HTML at build time (`scripts/prerender.mjs`) and hydrated in the browser
-- three.js / react-three-fiber / cannon only on `/archive`, loaded on demand
+- framer-motion (`LazyMotion`) for reveals and page transitions
+- three.js / react-three-fiber / cannon for the interactive bubble universe on the home page (still poster first, live scene when idle on desktop or at the first touch on phones), and small interactive 3D pieces on other pages (`src/components/cosmos/Gem.jsx`)
 - Vitest + Testing Library (unit), Playwright + axe-core (end-to-end and accessibility)
 
 ## Getting started
@@ -34,9 +35,9 @@ npm run dev          # development server at http://localhost:5173
 
 ```
 src/
-  data/          all site content: profile, education, research, projects, mlLab, achievements, archive, pages (route metadata)
+  data/          all site content: profile, education, research, projects, mlLab, achievements, archive (art), moments, pages (route metadata)
   pages/         one component per route
-  components/    layout, UI primitives, research charts, archive sketch
+  components/    layout, UI primitives, motion, research charts, cosmos (3D bubble universe)
   styles/        tokens, fonts, base styles
   tests/         unit tests
   entry-client.jsx / entry-server.jsx

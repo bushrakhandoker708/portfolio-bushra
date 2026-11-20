@@ -17,3 +17,13 @@ window.matchMedia ??= (query) => ({
   onchange: null,
   dispatchEvent: () => false,
 });
+
+// framer-motion's whileInView needs IntersectionObserver; jsdom has none.
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+};

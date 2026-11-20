@@ -12,7 +12,7 @@ const { render, pages, NOT_FOUND, redirects, SITE_URL, LAST_UPDATED } = ssr;
 const assets = await readdir(join(dist, "assets"));
 // Preload the body font and the display serif (latin subsets). The serif uses
 // font-display: optional, so it must arrive early to be used at all.
-const fontPreloads = [/^ibm-plex-sans-latin-400-normal-.*\.woff2$/, /^newsreader-latin-opsz-normal-.*\.woff2$/]
+const fontPreloads = [/^ibm-plex-sans-latin-400-normal-.*\.woff2$/, /^playfair-display-latin-wght-normal-.*.woff2$/]
   .map((re) => assets.find((f) => re.test(f)))
   .filter(Boolean);
 const preload = fontPreloads.map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`).join("\n    ");

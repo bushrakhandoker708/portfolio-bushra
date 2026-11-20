@@ -24,7 +24,7 @@ describe("route metadata", () => {
     expect(new Set(descriptions).size).toBe(descriptions.length);
   });
 
-  it("every case study has a route", () => {
+  it("every project story has a route", () => {
     for (const p of projects) expect(pages[`/projects/${p.slug}`]).toBeDefined();
   });
 
@@ -65,7 +65,7 @@ describe("evidence-based skill claims", () => {
     expect(text).not.toMatch(/\d+\s?%|mastery|expert/i);
   });
 
-  it("every case study links to evidence and states limitations", () => {
+  it("every project story links to evidence and states limitations", () => {
     for (const p of [...projects]) {
       expect(p.links.length, p.slug).toBeGreaterThan(0);
       expect(p.limitations.length, p.slug).toBeGreaterThan(0);

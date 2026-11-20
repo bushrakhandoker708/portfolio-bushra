@@ -23,8 +23,8 @@ export default function MlLab() {
         </div>
       </PageHeader>
 
-      {mlLab.groups.map((g) => (
-        <Section key={g.title} id={g.title.toLowerCase().replace(/\s+/g, "-")} title={g.title}>
+      {mlLab.groups.map((g, gi) => (
+        <Section key={g.title} id={g.title.toLowerCase().replace(/\s+/g, "-")} title={g.title} accent={["gold", "teal", "rose", "sky", "lavender"][gi % 5]}>
           <ScrollRegion label={`${g.title} topics`}>
             <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
               <caption className="sr-only">{g.title} topics with evidence status</caption>
@@ -57,14 +57,14 @@ export default function MlLab() {
         </Section>
       ))}
 
-      <Section id="next" title="Next in the lab">
+      <Section id="next" title="Next in the lab" accent="teal">
         <ul className="list-dash max-w-prose space-y-2 text-muted">
           {mlLab.next.map((n) => (
             <li key={n}>{n}</li>
           ))}
         </ul>
         <p className="mt-6 max-w-prose text-muted">
-          {mlLab.appliedElsewhere.text} <Link to={mlLab.appliedElsewhere.href}>See the Relevia case study</Link>.
+          {mlLab.appliedElsewhere.text} <Link to={mlLab.appliedElsewhere.href}>See the Relevia research</Link>.
         </p>
       </Section>
     </>

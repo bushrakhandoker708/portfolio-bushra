@@ -27,10 +27,11 @@ const TYPES = {
   ".json": "application/json",
 };
 
-// Compressed bodies are cached in memory; dist/ does not change while serving.
+// Compressed bodies are cached in memory, keyed by modification time so a
+// rebuild while the server is running is picked up.
 const cache = new Map();
-const compress = (file, body, enc) => {
-  const key = `${enc}:${file}`;
+const compress = (file, body, enc, mtime) => {
+  const key = `${enc}:${file}:${mtime}`;
   if (!cache.has(key)) {
     cache.set(key, enc === "br" ? brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } }) : gzipSync(body, { level: 9 }));
   }
@@ -74,9 +75,11 @@ createServer(async (req, res) => {
   if (/text|javascript|json|xml|svg/.test(type)) {
     const accept = req.headers["accept-encoding"] ?? "";
     const enc = accept.includes("br") ? "br" : accept.includes("gzip") ? "gzip" : null;
-    if (enc) [body, headers["Content-Encoding"]] = [compress(target, body, enc), enc];
+    if (enc) [body, headers["Content-Encoding"]] = [compress(target, body, enc, (await stat(target)).mtimeMs), enc];
   }
-  if (target.includes(`${join("dist", "assets")}`)) headers["Cache-Control"] = "public, max-age=31536000, immutable";
+  // Hashed assets are immutable; everything else revalidates (Vercel's default for pages),
+  // so a rebuild is never hidden behind a stale cached page.
+  headers["Cache-Control"] = target.includes(`${join("dist", "assets")}`) ? "public, max-age=31536000, immutable" : "public, max-age=0, must-revalidate";
   res.writeHead(status, headers);
   res.end(body);
 }).listen(port, () => console.log(`serving dist on http://localhost:${port}`));

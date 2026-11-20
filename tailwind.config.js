@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-// Colours resolve to CSS custom properties defined in src/styles/tokens.css,
-// so light and dark themes share one set of utility classes.
+// Colours resolve to CSS custom properties defined in src/styles/index.css.
 const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
 
 export default {
@@ -19,20 +18,28 @@ export default {
         lavender: token("lavender"),
         amber: token("amber"),
         danger: token("danger"),
+        mauve: token("mauve"),
+        champagne: token("champagne"),
+        sky: token("sky"),
+        gold: token("gold"),
+        rose: token("rose"),
+        accent: token("accent"),
       },
       fontFamily: {
         // Each web font is followed by a metric-matched local fallback (see
         // src/styles/index.css) so the swap does not shift the layout.
-        serif: ['"Newsreader Variable"', '"Newsreader Fallback"', "Georgia", "serif"],
+        serif: ['"Playfair Display Variable"', '"Playfair Fallback"', "Georgia", "serif"],
+        sub: ['"Cormorant Garamond"', "Georgia", "serif"],
         sans: ['"IBM Plex Sans"', '"Plex Sans Fallback"', "system-ui", "sans-serif"],
-        mono: ['"IBM Plex Mono"', '"Plex Mono Fallback"', "ui-monospace", "monospace"],
+        label: ["Jura", '"Plex Sans Fallback"', "system-ui", "sans-serif"],
+        mono: ["Jura", "ui-monospace", "monospace"],
       },
       maxWidth: {
         prose: "68ch",
         page: "72rem",
       },
       letterSpacing: {
-        label: "0.08em",
+        label: "0.14em",
       },
     },
   },

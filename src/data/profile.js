@@ -8,8 +8,9 @@ export const profile = {
   focus: "AI/ML Engineering & Independent Research",
   affiliation: "Swansea University",
   location: "Swansea, United Kingdom",
+  // Bushra's own words (from the earlier About text), then the current work.
   summary:
-    "Exploring reliable language models, reproducible machine learning and resource-efficient AI systems through implementation and experimentation.",
+    "Imagination is never enough for me; I need to see it come alive. Right now that means small language models: what one that fits on your own device can do reliably, what it costs to run, and how to measure that honestly.",
   email: "bushrakhandoker2@gmail.com",
   links: {
     github: `https://github.com/${GITHUB_USER}`,

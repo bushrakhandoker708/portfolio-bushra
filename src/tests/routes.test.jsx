@@ -29,7 +29,7 @@ describe("every route renders", () => {
 
   it("old routes redirect", async () => {
     renderAt("/my-works");
-    expect(await screen.findByRole("heading", { level: 1, name: "Selected engineering work" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Things I built, and how I thought about them" })).toBeInTheDocument();
   });
 });
 
@@ -39,7 +39,7 @@ describe("home page", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Bushra Khandoker" })).toBeInTheDocument();
     const tagline = screen.getByText((_, el) => el?.tagName === "P" && /^Computer Science Undergraduate\s*\|\s*,?\s*AI\/ML Engineering & Independent Research$/.test(el.textContent.trim()));
     expect(tagline).toBeInTheDocument();
-    expect(screen.getByText(/Exploring reliable language models, reproducible machine learning and resource-efficient AI systems/)).toBeInTheDocument();
+    expect(screen.getByText(/Imagination is never enough for me; I need to see it come alive/)).toBeInTheDocument();
     for (const name of [/Explore research/i, /View projects/i, /CV/, /GitHub/]) {
       expect(screen.getAllByRole("link", { name }).length).toBeGreaterThan(0);
     }
@@ -52,7 +52,7 @@ describe("home page", () => {
   });
 });
 
-describe("Relevia case study", () => {
+describe("Relevia research story", () => {
   it("shows the disclosure, non-clinical statement and data tables", async () => {
     renderAt("/research/relevia");
     await screen.findByRole("heading", { level: 1 });
@@ -82,10 +82,22 @@ describe("mobile navigation", () => {
   });
 });
 
-describe("archive", () => {
-  it("does not load the WebGL sketch until asked", async () => {
+describe("art and making", () => {
+  it("filters the collection by medium", async () => {
     renderAt("/archive");
-    expect(await screen.findByRole("button", { name: /Start the physics sketch/ })).toBeInTheDocument();
+    const all = await screen.findByRole("button", { name: /^All/ });
+    expect(all).toHaveAttribute("aria-pressed", "true");
+    const acrylic = screen.getByRole("button", { name: /^Acrylic/ });
+    fireEvent.click(acrylic);
+    expect(acrylic).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("list", { name: "Acrylic artwork" })).toBeInTheDocument();
+  });
+});
+
+describe("home", () => {
+  it("renders the poster, not a WebGL canvas, before the page has loaded", async () => {
+    renderAt("/");
+    expect(await screen.findByRole("heading", { level: 1, name: "Bushra Khandoker" })).toBeInTheDocument();
     expect(document.querySelector("canvas")).toBeNull();
   });
 });

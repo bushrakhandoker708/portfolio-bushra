@@ -7,6 +7,7 @@ const OUT = "legacy-assets/screens";
 const TARGETS = [
   { name: "relevia-home", url: "https://bushrakhandoker708.github.io/relevia/" },
   { name: "bushal-home", url: "https://bushal.vercel.app/" },
+  { name: "studybuddy-home", url: "https://study-buddy-seven-blush.vercel.app/" },
 ];
 
 mkdirSync(OUT, { recursive: true });

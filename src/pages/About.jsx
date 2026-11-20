@@ -1,29 +1,37 @@
 import { Link } from "react-router-dom";
-import { profile, interests } from "../data/profile";
+import { ART_PORTFOLIO } from "../data/archive";
+import { profile } from "../data/profile";
 import { education } from "../data/education";
 import { achievements } from "../data/achievements";
+import { moments } from "../data/moments";
+import { RevealGroup, RevealItem } from "../components/motion";
 import { PageHeader, Section, StatusBadge } from "../components/ui";
 
 export default function About() {
   return (
     <>
-      <PageHeader eyebrow="About" title="Background and direction">
+      <PageHeader eyebrow="About" title="Hello, I'm Bushra" accent="rose">
         <div className="prose-body text-lg">
           <p>
-            I am a final-year Computer Science undergraduate at {profile.affiliation}, on the Cyber Security and Artificial Intelligence top-up
-            degree, after completing a Level 5 diploma in cyber security. My route into computing ran through mathematics and physics Olympiads,
-            and that habit of asking <em>why</em> something works is what I now bring to machine learning.
+            For me, imagination is never enough; I need to see it come alive. Late at night I will often have a sketch in one hand and a
+            laptop in front of me, chasing an idea line by line until it finally moves, breathes or responds on the screen. What excites me
+            most is watching creativity and logic collide.
           </p>
           <p>
-            My current work is on small language models. I want to know what a model that fits on a user&apos;s own device can do reliably, what it
-            costs to run, and how to measure that honestly. In practice that has meant fixing data leakage before running comparisons, recording
-            anomalies instead of deleting them, and reporting inconclusive results as inconclusive.
+            My route into computing ran through mathematics and physics Olympiads, and that habit of asking <em>why</em> something works
+            never left. I am now a final-year Computer Science student at {profile.affiliation}, on the Cyber Security and Artificial
+            Intelligence top-up degree, after a Level 5 diploma in cyber security.
           </p>
-          <p>I plan to continue into postgraduate study and contribute to AI research.</p>
+          <p>
+            These days the question I keep returning to is about small language models: what can a model that fits on your own device do
+            reliably, what does it cost, and how do you measure that honestly? In practice that has meant fixing data leakage before running
+            comparisons, keeping anomalies on the record instead of deleting them, and calling an inconclusive result inconclusive.
+          </p>
+          <p>Challenges do not scare me; they energise me. Next, I want to take this into postgraduate study and research.</p>
         </div>
       </PageHeader>
 
-      <Section id="education" title="Education">
+      <Section id="education" title="Education" accent="gold">
         <ol className="grid gap-6">
           {education.map((e) => (
             <li key={e.award} className="card p-5 sm:p-6">
@@ -52,20 +60,7 @@ export default function About() {
         </ol>
       </Section>
 
-      <Section id="interests" title="Research interests">
-        <ul className="grid max-w-3xl gap-x-8 gap-y-2 text-muted sm:grid-cols-2">
-          {interests.map((i) => (
-            <li key={i} className="border-b border-rule py-2">
-              {i}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 text-sm">
-          <Link to="/research">How these show up in my current research</Link>
-        </p>
-      </Section>
-
-      <Section id="achievements" title="Selected earlier achievements">
+      <Section id="achievements" title="Selected earlier achievements" accent="teal">
         <ol className="max-w-3xl divide-y divide-rule border-y border-rule">
           {achievements.map((a) => (
             <li key={a.title} className="grid grid-cols-[3.5rem_1fr] gap-4 py-3">
@@ -79,10 +74,27 @@ export default function About() {
         </ol>
       </Section>
 
-      <Section id="beyond" title="Beyond computing">
+      <Section id="moments" title="Moments along the way" accent="rose">
+        <RevealGroup className="grid gap-5 sm:grid-cols-3">
+          {moments.map((mo) => (
+            <RevealItem as="figure" key={mo.caption} className="group">
+              <div className="shot aspect-[4/3]">
+                <img src={mo.src} alt={mo.alt} width={mo.w} height={mo.h} loading="lazy" decoding="async" />
+              </div>
+              <figcaption className="mt-3 text-sm text-muted">{mo.caption}</figcaption>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </Section>
+
+      <Section id="beyond" title="Beyond computing" accent="sky">
         <p className="prose-body">
-          I have drawn and painted for most of my life, and I use Blender for 3D modelling. A small selection is in the{" "}
-          <Link to="/archive">creative archive</Link>.
+          I have drawn and painted for most of my life: pencil, acrylic, watercolour, clay, and Blender for 3D. Every piece tells a story,
+          and some of my favourites are in <Link to="/archive">Art &amp; making</Link>. The full collection lives on{" "}
+          <a href={ART_PORTFOLIO} target="_blank" rel="noopener noreferrer">
+            my art portfolio<span className="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span>
+          </a>
+          . The research interests behind my current work are on the <Link to="/research#interests">Research</Link> page.
         </p>
       </Section>
     </>

@@ -49,7 +49,7 @@ export const pages = {
   },
   "/projects": {
     title: "Projects · Bushra Khandoker",
-    description: "Engineering case studies: HEXALOCK embedded control, the Bushal e-commerce platform and the Relevia application.",
+    description: "Project stories told from the question up: StudyBuddy, Bushal, the Relevia app and HEXALOCK, with the forks, the bugs and what is still open.",
   },
   ...Object.fromEntries(
     projects.map((p) => [
@@ -77,8 +77,8 @@ export const pages = {
     description: "Academic CV: education, research, projects and technical skills.",
   },
   "/archive": {
-    title: "Creative archive · Bushra Khandoker",
-    description: "Selected drawings, paintings, 3D renders and an interactive physics sketch.",
+    title: "Art & making · Bushra Khandoker",
+    description: "Acrylic and watercolour paintings, graphite drawings, architectural models, crafts and Blender renders by Bushra Khandoker.",
   },
 };
 
