@@ -13,7 +13,7 @@ export default function Research() {
         eyebrow="Research"
         title="Independent research"
         accent="sky"
-        visual={<Scene3D shape="orbits" label="Interactive 3D atom" hint="Where it started for me: physics. Tap the nucleus to speed the electrons up." className="h-[18rem] sm:h-[22rem]" />}
+        visual={<Scene3D shape="routing" label="Interactive 3D view of the safety-routing evaluation: 42 held-out messages passing through a detector" hint="Each dot is one held-out test message, rose if urgent, teal if not. Upper lane: the safety response; lower lane: the model." className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]" />}
       >
         <p className="lede">
           I am an undergraduate, so this is early, independent work, not published research. What I care about is asking a question

@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { relevia } from "../../data/research";
 
 /*
  * Small interactive 3D pieces for page headers, one per subject. Each is a
  * self-contained scene with no textures or physics, so it compiles quickly.
  * Loaded lazily by Scene3D only when it scrolls into view.
  *
- *   surface  z = sin x · cos y, coloured by the sign of its Gaussian curvature
+ *   surface  z = sin x · cos y, coloured by the sign of its Gaussian curvature,
+ *            with its critical points marked (maxima, minima, saddles)
  *   parcels  orders orbiting a database; confirming one is idempotent
  *   orb      a breathing sphere (Relevia's breathing tool)
  *   hex      six locker compartments that open and close
  *   crystals wireframe crystals; tap to energise, triple-tap to burst into bubbles
- *   orbits   an atom: physics, where it all started
- *   knot     ideas tied together; tap to re-tie it differently
- *   margin   two classes and a decision boundary; tap to bend it from linear to curved
+ *   routing  Relevia's safety routing: the 42 held-out messages through the
+ *            S0, S1 or S2 detector, split exactly as each detector split them
+ *   projects the four project stories as small objects; tap one to bring it forward
+ *   forest   a random forest trained here on two half-moons; the grid is its vote
+ *   margin   a linear soft-margin SVM trained here, in the browser, on two
+ *            overlapping classes: decision plane, both margin planes, support
+ *            vectors; tap to change C
+ *
+ * A scene can report one line of live text (onInfo), shown under it.
  */
 
 export const COLOURS = {
@@ -71,9 +79,28 @@ function curvature(x, y, h = 1e-4) {
   const fxy = (f(x + h, y + h) - f(x + h, y - h) - f(x - h, y + h) + f(x - h, y - h)) / (4 * h * h);
   return (fxx * fyy - fxy * fxy) / (1 + fx * fx + fy * fy) ** 2;
 }
+// Critical points of sin x · cos y inside the plotted square: extrema where
+// x = π/2 + kπ and y = mπ, saddles where x = kπ and y = π/2 + mπ.
+const SURFACE_R = Math.PI * 1.15;
+const CRITICAL = (() => {
+  const out = [];
+  for (let k = -2; k <= 2; k += 1)
+    for (let m = -2; m <= 2; m += 1) {
+      const ex = Math.PI / 2 + k * Math.PI;
+      const ey = m * Math.PI;
+      if (Math.abs(ex) <= SURFACE_R && Math.abs(ey) <= SURFACE_R)
+        out.push({ x: ex, y: ey, z: f(ex, ey), kind: f(ex, ey) > 0 ? "max" : "min" });
+      const sx = k * Math.PI;
+      const sy = Math.PI / 2 + m * Math.PI;
+      if (Math.abs(sx) <= SURFACE_R && Math.abs(sy) <= SURFACE_R) out.push({ x: sx, y: sy, z: 0, kind: "saddle" });
+    }
+  return out;
+})();
+const CRIT_COLOUR = { max: COLOURS.gold, min: COLOURS.sky, saddle: COLOURS.champagne };
+
 function Surface() {
   const N = 56;
-  const R = Math.PI * 1.15;
+  const R = SURFACE_R;
   const geometry = useMemo(() => {
     const g = new THREE.PlaneGeometry(2 * R, 2 * R, N, N);
     const pos = g.attributes.position;
@@ -115,7 +142,7 @@ function Surface() {
   });
 
   return (
-    <group rotation={[-Math.PI / 2.6, 0, 0]} scale={0.62}>
+    <group rotation={[-Math.PI / 2.6, 0, 0]} scale={0.55}>
       <mesh
         geometry={geometry}
         onClick={(e) => {
@@ -128,6 +155,12 @@ function Surface() {
       <mesh geometry={geometry}>
         <meshBasicMaterial wireframe color="#ffffff" transparent opacity={0.08} />
       </mesh>
+      {CRITICAL.map((c) => (
+        <mesh key={`${c.x},${c.y}`} position={[c.x, c.y, c.z + (c.kind === "min" ? -0.07 : 0.07)]}>
+          <sphereGeometry args={[0.11, 16, 12]} />
+          <meshBasicMaterial color={CRIT_COLOUR[c.kind]} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -172,7 +205,10 @@ function Parcel({ angle, radius, y }) {
 function Parcels() {
   const cyl = useMemo(() => new THREE.CylinderGeometry(0.7, 0.7, 1.5, 32, 3, true), []);
   useEffect(() => () => cyl.dispose(), [cyl]);
-  const items = useMemo(() => Array.from({ length: 9 }, (_, i) => ({ angle: (i / 9) * Math.PI * 2, radius: 2.1 + (i % 3) * 0.25, y: ((i % 3) - 1) * 0.45 })), []);
+  const items = useMemo(
+    () => Array.from({ length: 9 }, (_, i) => ({ angle: (i / 9) * Math.PI * 2, radius: 2.1 + (i % 3) * 0.25, y: ((i % 3) - 1) * 0.45 })),
+    [],
+  );
   return (
     <group>
       <mesh geometry={cyl}>
@@ -220,7 +256,16 @@ function Orb() {
         }}
       >
         <icosahedronGeometry args={[1.25, 6]} />
-        <meshPhysicalMaterial ref={mat} color={palette[0]} emissive={palette[0]} emissiveIntensity={0.25} roughness={0.15} clearcoat={1} transparent opacity={0.92} />
+        <meshPhysicalMaterial
+          ref={mat}
+          color={palette[0]}
+          emissive={palette[0]}
+          emissiveIntensity={0.25}
+          roughness={0.15}
+          clearcoat={1}
+          transparent
+          opacity={0.92}
+        />
       </mesh>
       <mesh ref={ring} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.25, 0.015, 8, 96]} />
@@ -261,7 +306,10 @@ function Compartment({ position, index }) {
 }
 function Hex() {
   // A ring of six around a centre, like a honeycomb.
-  const cells = useMemo(() => Array.from({ length: 6 }, (_, i) => [Math.cos((i * Math.PI) / 3) * 0.9, Math.sin((i * Math.PI) / 3) * 0.9, 0]), []);
+  const cells = useMemo(
+    () => Array.from({ length: 6 }, (_, i) => [Math.cos((i * Math.PI) / 3) * 0.9, Math.sin((i * Math.PI) / 3) * 0.9, 0]),
+    [],
+  );
   return (
     <group rotation={[0.25, -0.4, 0]} scale={1.35}>
       {cells.map((p, i) => (
@@ -276,13 +324,22 @@ function Hex() {
 }
 
 /* ---------- crystals: energise, then burst into bubbles ---------- */
-const CRYSTAL_GEOS = [new THREE.OctahedronGeometry(0.6, 0), new THREE.IcosahedronGeometry(0.55, 0), new THREE.DodecahedronGeometry(0.5, 0), new THREE.TetrahedronGeometry(0.62, 0)];
+const CRYSTAL_GEOS = [
+  new THREE.OctahedronGeometry(0.6, 0),
+  new THREE.IcosahedronGeometry(0.55, 0),
+  new THREE.DodecahedronGeometry(0.5, 0),
+  new THREE.TetrahedronGeometry(0.62, 0),
+];
 const CRYSTAL_COLOURS = [COLOURS.lavender, COLOURS.gold, COLOURS.sky, COLOURS.teal, COLOURS.rose];
 
 function Burst({ origin, colour, onDone }) {
   const group = useRef(null);
   const parts = useMemo(
-    () => Array.from({ length: 14 }, () => ({ v: new THREE.Vector3((Math.random() - 0.5) * 2.4, Math.random() * 2 + 0.6, (Math.random() - 0.5) * 2.4), s: 0.06 + Math.random() * 0.12 })),
+    () =>
+      Array.from({ length: 14 }, () => ({
+        v: new THREE.Vector3((Math.random() - 0.5) * 2.4, Math.random() * 2 + 0.6, (Math.random() - 0.5) * 2.4),
+        s: 0.06 + Math.random() * 0.12,
+      })),
     [],
   );
   const age = useRef(0);
@@ -355,7 +412,16 @@ function Crystal({ position, geo, colour, onBurst }) {
       }}
     >
       <mesh geometry={geo}>
-        <meshStandardMaterial ref={mat} color={colour} emissive={colour} emissiveIntensity={0.2} transparent opacity={0.28} roughness={0.2} metalness={0.4} />
+        <meshStandardMaterial
+          ref={mat}
+          color={colour}
+          emissive={colour}
+          emissiveIntensity={0.2}
+          transparent
+          opacity={0.28}
+          roughness={0.2}
+          metalness={0.4}
+        />
       </mesh>
       <Edges geometry={geo} colour={colour} />
     </group>
@@ -364,15 +430,20 @@ function Crystal({ position, geo, colour, onBurst }) {
 function Crystals() {
   const [bursts, setBursts] = useState([]);
   const items = useMemo(
-    () => [
-      [-2.2, 0.4, 0],
-      [-0.8, -0.6, 0.6],
-      [0.6, 0.7, -0.3],
-      [2.0, -0.3, 0.2],
-      [-0.1, 0.1, 1.2],
-      [1.3, -1.0, 0.9],
-      [-1.6, -1.2, -0.5],
-    ].map((position, i) => ({ position, geo: CRYSTAL_GEOS[i % CRYSTAL_GEOS.length], colour: CRYSTAL_COLOURS[i % CRYSTAL_COLOURS.length] })),
+    () =>
+      [
+        [-2.2, 0.4, 0],
+        [-0.8, -0.6, 0.6],
+        [0.6, 0.7, -0.3],
+        [2.0, -0.3, 0.2],
+        [-0.1, 0.1, 1.2],
+        [1.3, -1.0, 0.9],
+        [-1.6, -1.2, -0.5],
+      ].map((position, i) => ({
+        position,
+        geo: CRYSTAL_GEOS[i % CRYSTAL_GEOS.length],
+        colour: CRYSTAL_COLOURS[i % CRYSTAL_COLOURS.length],
+      })),
     [],
   );
   return (
@@ -388,192 +459,631 @@ function Crystals() {
 }
 
 /* ---------- knot: ideas tied together; tap to re-tie ---------- */
-const TIES = [
-  [2, 3],
-  [3, 5],
-  [2, 5],
-  [3, 4],
-];
-function Knot() {
-  const [i, setI] = useState(0);
-  const [p, q] = TIES[i];
-  const geo = useMemo(() => new THREE.TorusKnotGeometry(1.15, 0.28, 180, 14, p, q), [p, q]);
-  useEffect(() => () => geo.dispose(), [geo]);
-  const ref = useRef(null);
-  const pop = useRef(0);
-  useFrame((_, dt) => {
-    pop.current = damp(pop.current, 1, 4, dt);
-    ref.current.scale.setScalar(0.6 + pop.current * 0.4);
-  });
-  return (
-    <group
-      ref={ref}
-      onClick={(e) => {
-        e.stopPropagation();
-        pop.current = 0;
-        setI((n) => (n + 1) % TIES.length);
-      }}
-    >
-      <mesh geometry={geo}>
-        <meshPhysicalMaterial color={COLOURS.teal} emissive={COLOURS.sky} emissiveIntensity={0.15} roughness={0.2} clearcoat={1} transparent opacity={0.55} />
-      </mesh>
-      <mesh geometry={geo}>
-        <meshBasicMaterial wireframe color={COLOURS.gold} transparent opacity={0.22} />
-      </mesh>
-    </group>
-  );
-}
-
-/* ---------- orbits: an atom ---------- */
-function Electron({ radius, speed, phase, colour, boost }) {
-  const ref = useRef(null);
-  const t = useRef(phase);
-  useFrame((_, dt) => {
-    t.current += dt * speed * (1 + boost.current * 4);
-    ref.current.position.set(Math.cos(t.current) * radius, Math.sin(t.current) * radius, 0);
-  });
-  return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[0.09, 16, 12]} />
-      <meshBasicMaterial color={colour} />
-    </mesh>
-  );
-}
-function Orbits() {
-  const boost = useRef(0);
-  const nucleus = useRef(null);
-  useFrame((_, dt) => {
-    boost.current = damp(boost.current, 0, 1.2, dt);
-    nucleus.current.scale.setScalar(1 + boost.current * 0.25);
-  });
-  const rings = [
-    { tilt: [0, 0, 0], colour: COLOURS.teal, speed: 1.1, r: 1.7 },
-    { tilt: [Math.PI / 3, 0.3, 0], colour: COLOURS.gold, speed: 0.8, r: 1.9 },
-    { tilt: [-Math.PI / 3, -0.3, 0], colour: COLOURS.rose, speed: 1.4, r: 1.6 },
-  ];
-  return (
-    <group>
-      <mesh
-        ref={nucleus}
-        onClick={(e) => {
-          e.stopPropagation();
-          boost.current = 1;
-        }}
-      >
-        <icosahedronGeometry args={[0.45, 3]} />
-        <meshPhysicalMaterial color={COLOURS.lavender} emissive={COLOURS.mauve} emissiveIntensity={0.5} roughness={0.2} clearcoat={1} />
-      </mesh>
-      {rings.map((ring) => (
-        <group key={ring.colour} rotation={ring.tilt}>
-          <mesh>
-            <torusGeometry args={[ring.r, 0.01, 6, 120]} />
-            <meshBasicMaterial color={ring.colour} transparent opacity={0.55} />
-          </mesh>
-          <Electron radius={ring.r} speed={ring.speed} phase={ring.r} colour={ring.colour} boost={boost} />
-        </group>
-      ))}
-    </group>
-  );
-}
-
-/* ---------- margin: two classes and a boundary that bends ---------- */
-// A deterministic generator so the point cloud is the same on every visit.
+/* ---------- shared: deterministic randomness ---------- */
 function seeded(seed) {
-  let s = seed;
+  // Scramble the seed so neighbouring seeds do not start with near-identical values.
+  let s = ((Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) >>> 0) % 2147483646) + 1;
+  for (let k = 0; k < 3; k += 1) s = (s * 16807) % 2147483647;
   return () => {
     s = (s * 16807) % 2147483647;
     return (s - 1) / 2147483646;
   };
 }
-const wave = (y, z, bend) => bend * 0.6 * Math.sin(y * 1.8) * Math.cos(z * 0.7);
-const MARGIN_POINTS = (() => {
-  const r = seeded(11);
-  const pts = [];
-  for (let i = 0; i < 120; i += 1) {
-    const y = (r() * 2 - 1) * 1.2;
-    const z = (r() * 2 - 1) * 0.95;
-    const good = r() < 0.6;
-    // Classes follow a curved boundary, with enough noise that they overlap.
-    const x = wave(y, z, 1) + (good ? 1 : -1) * (0.08 + r() * 0.95) + (r() - 0.5) * 0.45;
-    pts.push({ x, y, z, good });
-  }
-  return pts;
-})();
-const MARGIN = 0.22;
+function gaussian(rnd) {
+  const u = Math.max(rnd(), 1e-9);
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd());
+}
+const smooth = (t) => t * t * (3 - 2 * t);
 
-function Margin() {
-  const target = useRef(0);
-  const bend = useRef(-1);
-  const points = useRef(null);
-  const geo = useMemo(() => {
-    const g = new THREE.PlaneGeometry(2.6, 2.1, 30, 22);
-    g.userData.uv = Float32Array.from(g.attributes.position.array);
-    return g;
-  }, []);
-  useEffect(() => () => geo.dispose(), [geo]);
+/* ---------- routing: Relevia's safety detectors on the held-out set ---------- */
+// Counts from relevia-research results/safety/s2-v1/evaluation.json
+// (src/data/research.js): 24 urgent and 18 ordinary messages.
+const ROUTE_PATH_IN = (i, t) => {
+  // From a loose cloud on the left into the gate at the origin.
+  const r = seeded(100 + i);
+  const y0 = (r() - 0.5) * 2.2;
+  const z0 = (r() - 0.5) * 1.6;
+  const e = smooth(t);
+  return [-2.8 + 2.8 * t, y0 * (1 - e), z0 * (1 - e)];
+};
+const LANE_END = { safety: [2.5, 1.15, 0], model: [2.5, -1.15, 0] };
+const ROUTE_PATH_OUT = (lane, t) => {
+  const [ex, ey] = LANE_END[lane];
+  const e = smooth(t);
+  return [ex * t, ey * e, 0];
+};
+
+function Routing({ onInfo }) {
+  const detectors = relevia.safety.detectors;
+  const { urgent, nonUrgent } = relevia.safety;
+  const [di, setDi] = useState(0);
+  const d = detectors[di];
+  const det = useRef(d);
+  det.current = d;
+  const inst = useRef(null);
+  const gate = useRef(null);
+  const flash = useRef(0);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const colours = useMemo(
-    () => ({ good: new THREE.Color(COLOURS.teal), poor: new THREE.Color(COLOURS.rose), wrong: new THREE.Color(COLOURS.gold) }),
+  // One particle per held-out message: urgent ones first, then ordinary ones.
+  const particles = useMemo(
+    () =>
+      Array.from({ length: urgent + nonUrgent }, (_, i) => ({
+        urgent: i < urgent,
+        rank: i < urgent ? i : i - urgent,
+        phase: seeded(7 + i)(),
+        lane: "model",
+      })),
+    [urgent, nonUrgent],
+  );
+  const colours = useMemo(() => ({ urgent: new THREE.Color(COLOURS.rose), ordinary: new THREE.Color(COLOURS.teal) }), []);
+  const lanes = useMemo(
+    () =>
+      ["safety", "model"].map((lane) => {
+        const pts = Array.from({ length: 30 }, (_, k) => new THREE.Vector3(...ROUTE_PATH_OUT(lane, k / 29)));
+        return new THREE.BufferGeometry().setFromPoints(pts);
+      }),
     [],
   );
+  useEffect(() => () => lanes.forEach((g) => g.dispose()), [lanes]);
 
-  useFrame((_, dt) => {
-    const prev = bend.current;
-    const b = prev < 0 ? 0 : damp(prev, target.current, 2.6, dt);
-    if (prev >= 0 && Math.abs(b - prev) < 1e-4) return;
-    bend.current = b;
-    // Boundary: the plane's (u, v) becomes (y, z) and x follows the wave.
-    const pos = geo.attributes.position;
-    const uv = geo.userData.uv;
-    for (let i = 0; i < pos.count; i += 1) {
-      const u = uv[i * 3];
-      const v = uv[i * 3 + 1];
-      pos.setXYZ(i, wave(u, v, b), u, v);
-    }
-    pos.needsUpdate = true;
-    geo.computeVertexNormals();
-    // Points: wrong side of the boundary turns gold; inside the margin grows (a support vector).
-    const inst = points.current;
-    MARGIN_POINTS.forEach((p, i) => {
-      const d = p.x - wave(p.y, p.z, b);
-      const right = (d > 0) === p.good;
-      const inside = Math.abs(d) < MARGIN;
-      dummy.position.set(p.x, p.y, p.z);
-      dummy.scale.setScalar(!right || inside ? 1.55 : 1);
+  useEffect(() => {
+    onInfo?.(
+      `${d.id} (${d.label}): ${d.tp} of ${urgent} urgent messages routed to the safety response, ${d.fp} of ${nonUrgent} ordinary ones. Tap to switch detector.`,
+    );
+  }, [d, onInfo, urgent, nonUrgent]);
+
+  useFrame((state, dt) => {
+    const t0 = state.clock.elapsedTime * 0.11;
+    const cur = det.current;
+    flash.current = damp(flash.current, 0, 3, dt);
+    if (gate.current) gate.current.scale.setScalar(1 + flash.current * 0.25);
+    particles.forEach((p, i) => {
+      const t = (t0 + p.phase) % 1;
+      // The routing decision is taken as the message reaches the gate.
+      if (t < 0.5) p.lane = (p.urgent ? p.rank < cur.tp : p.rank < cur.fp) ? "safety" : "model";
+      const pos = t < 0.5 ? ROUTE_PATH_IN(i, t * 2) : ROUTE_PATH_OUT(p.lane, (t - 0.5) * 2);
+      const fade = Math.min(1, t * 12, (1 - t) * 12);
+      dummy.position.set(...pos);
+      dummy.scale.setScalar(0.25 + 0.75 * fade);
       dummy.updateMatrix();
-      inst.setMatrixAt(i, dummy.matrix);
-      inst.setColorAt(i, right ? (p.good ? colours.good : colours.poor) : colours.wrong);
+      inst.current.setMatrixAt(i, dummy.matrix);
+      inst.current.setColorAt(i, p.urgent ? colours.urgent : colours.ordinary);
     });
-    inst.instanceMatrix.needsUpdate = true;
-    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+    inst.current.instanceMatrix.needsUpdate = true;
+    if (inst.current.instanceColor) inst.current.instanceColor.needsUpdate = true;
   });
 
   return (
     <group
-      rotation={[0.2, -1.1, 0]}
+      rotation={[0.15, -0.75, 0]}
       onClick={(e) => {
         e.stopPropagation();
-        target.current = target.current > 0.5 ? 0 : 1;
+        flash.current = 1;
+        setDi((n) => (n + 1) % detectors.length);
       }}
     >
-      <mesh geometry={geo}>
-        <meshStandardMaterial color={COLOURS.lavender} emissive={COLOURS.mauve} emissiveIntensity={0.25} side={THREE.DoubleSide} transparent opacity={0.3} depthWrite={false} roughness={0.4} />
+      <mesh ref={gate} rotation={[0, Math.PI / 2, 0]}>
+        <torusGeometry args={[0.42, 0.035, 12, 64]} />
+        <meshBasicMaterial color={COLOURS.lavender} />
       </mesh>
-      <mesh geometry={geo}>
-        <meshBasicMaterial wireframe color={COLOURS.champagne} transparent opacity={0.16} />
+      <mesh rotation={[0, Math.PI / 2, 0]}>
+        <circleGeometry args={[0.4, 48]} />
+        <meshBasicMaterial color={COLOURS.mauve} transparent opacity={0.12} side={THREE.DoubleSide} />
       </mesh>
-      <instancedMesh ref={points} args={[undefined, undefined, MARGIN_POINTS.length]}>
-        <sphereGeometry args={[0.055, 12, 10]} />
+      {lanes.map((g, k) => (
+        <line key={k} geometry={g}>
+          <lineBasicMaterial color={k === 0 ? COLOURS.rose : COLOURS.teal} transparent opacity={0.35} />
+        </line>
+      ))}
+      <mesh position={LANE_END.safety}>
+        <icosahedronGeometry args={[0.2, 2]} />
+        <meshBasicMaterial color={COLOURS.rose} transparent opacity={0.85} />
+      </mesh>
+      <mesh position={LANE_END.model}>
+        <icosahedronGeometry args={[0.2, 2]} />
+        <meshBasicMaterial color={COLOURS.teal} transparent opacity={0.85} />
+      </mesh>
+      <instancedMesh ref={inst} args={[undefined, undefined, particles.length]}>
+        <sphereGeometry args={[0.065, 12, 10]} />
+        <meshBasicMaterial color="#ffffff" />
+      </instancedMesh>
+      {/* A large invisible target so a tap anywhere switches the detector. */}
+      <mesh visible={false}>
+        <boxGeometry args={[6, 3.4, 2]} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ---------- projects: the four project stories ---------- */
+const PROJECTS = [
+  { title: "StudyBuddy", note: "a graphing engine that checks its own maths", colour: COLOURS.teal },
+  { title: "Bushal", note: "a shop that counts stock exactly once", colour: COLOURS.gold },
+  { title: "Relevia", note: "a supportive chat that runs on the device", colour: COLOURS.lavender },
+  { title: "HEXALOCK", note: "a six-compartment smart locker", colour: COLOURS.sky },
+];
+function ProjectGeometry({ index }) {
+  const surface = useMemo(() => {
+    if (index !== 0) return null;
+    const g = new THREE.PlaneGeometry(1.1, 1.1, 18, 18);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i += 1) pos.setZ(i, f(pos.getX(i) * 4, pos.getY(i) * 4) * 0.18);
+    g.computeVertexNormals();
+    return g;
+  }, [index]);
+  useEffect(() => () => surface?.dispose(), [surface]);
+  if (index === 0) return <primitive object={surface} attach="geometry" />;
+  if (index === 1) return <boxGeometry args={[0.62, 0.48, 0.62]} />;
+  if (index === 2) return <icosahedronGeometry args={[0.38, 3]} />;
+  return <cylinderGeometry args={[0.4, 0.4, 0.42, 6]} />;
+}
+function ProjectNode({ p, index, angle, focused, onFocus }) {
+  const ref = useRef(null);
+  const mat = useRef(null);
+  useFrame((state, dt) => {
+    const k = focused ? 1 : 0;
+    ref.current.scale.setScalar(damp(ref.current.scale.x, focused ? 1.45 : 0.85, 4, dt));
+    ref.current.rotation.y += dt * (0.3 + k * 0.6);
+    if (index === 2) ref.current.scale.multiplyScalar(1 + Math.sin(state.clock.elapsedTime * (Math.PI / 4)) * 0.04);
+    mat.current.emissiveIntensity = damp(mat.current.emissiveIntensity, 0.15 + k * 0.5, 4, dt);
+    mat.current.opacity = damp(mat.current.opacity, focused ? 0.95 : 0.6, 4, dt);
+  });
+  return (
+    <mesh
+      ref={ref}
+      position={[Math.cos(angle) * 1.75, Math.sin(angle) * 0.55, Math.sin(angle) * 1.2]}
+      rotation={index === 0 ? [-1.1, 0, 0] : [0.3, 0, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onFocus(index);
+      }}
+    >
+      <ProjectGeometry index={index} />
+      <meshPhysicalMaterial
+        ref={mat}
+        color={p.colour}
+        emissive={p.colour}
+        emissiveIntensity={0.15}
+        roughness={0.3}
+        clearcoat={1}
+        transparent
+        opacity={0.6}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+function Projects({ onInfo }) {
+  const [focus, setFocus] = useState(0);
+  useEffect(() => {
+    const p = PROJECTS[focus];
+    onInfo?.(`${p.title}: ${p.note}. Tap another to bring it forward.`);
+  }, [focus, onInfo]);
+  const ring = useRef(null);
+  // Turn the ring so the focused project comes to the front.
+  useFrame((_, dt) => {
+    const target = -Math.PI / 2 - (focus * Math.PI) / 2;
+    let diff = target - ring.current.rotation.y;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    ring.current.rotation.y += diff * Math.min(1, dt * 2.5);
+  });
+  return (
+    <group rotation={[0.42, 0, 0]}>
+      <group ref={ring}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.75, 0.006, 6, 160]} />
+          <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.3} />
+        </mesh>
+        {PROJECTS.map((p, i) => {
+          const angle = (i * Math.PI) / 2;
+          return (
+            <group key={p.title} rotation={[0, angle, 0]}>
+              <ProjectNode p={p} index={i} angle={0} focused={i === focus} onFocus={setFocus} />
+            </group>
+          );
+        })}
+      </group>
+    </group>
+  );
+}
+
+/* ---------- margin: a linear soft-margin SVM, trained here ---------- */
+// Simplified SMO (Platt, 1998) with a linear kernel. Deterministic: the data
+// and the choice of the second multiplier both come from seeded generators.
+function trainSvm(X, y, C) {
+  const n = X.length;
+  const K = X.map((a) => X.map((b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const alpha = new Float64Array(n);
+  let b = 0;
+  const rnd = seeded(42);
+  const out = (i) => {
+    let s = b;
+    for (let k = 0; k < n; k += 1) if (alpha[k] > 0) s += alpha[k] * y[k] * K[k][i];
+    return s;
+  };
+  const tol = 1e-3;
+  let passes = 0;
+  for (let iter = 0; passes < 10 && iter < 400; iter += 1) {
+    let changed = 0;
+    for (let i = 0; i < n; i += 1) {
+      const Ei = out(i) - y[i];
+      if (!((y[i] * Ei < -tol && alpha[i] < C) || (y[i] * Ei > tol && alpha[i] > 0))) continue;
+      let j = Math.floor(rnd() * (n - 1));
+      if (j >= i) j += 1;
+      const Ej = out(j) - y[j];
+      const ai = alpha[i];
+      const aj = alpha[j];
+      const L = y[i] !== y[j] ? Math.max(0, aj - ai) : Math.max(0, ai + aj - C);
+      const H = y[i] !== y[j] ? Math.min(C, C + aj - ai) : Math.min(C, ai + aj);
+      if (L === H) continue;
+      const eta = 2 * K[i][j] - K[i][i] - K[j][j];
+      if (eta >= 0) continue;
+      alpha[j] = Math.min(H, Math.max(L, aj - (y[j] * (Ei - Ej)) / eta));
+      if (Math.abs(alpha[j] - aj) < 1e-6) continue;
+      alpha[i] = ai + y[i] * y[j] * (aj - alpha[j]);
+      const b1 = b - Ei - y[i] * (alpha[i] - ai) * K[i][i] - y[j] * (alpha[j] - aj) * K[i][j];
+      const b2 = b - Ej - y[i] * (alpha[i] - ai) * K[i][j] - y[j] * (alpha[j] - aj) * K[j][j];
+      b = alpha[i] > 0 && alpha[i] < C ? b1 : alpha[j] > 0 && alpha[j] < C ? b2 : (b1 + b2) / 2;
+      changed += 1;
+    }
+    passes = changed === 0 ? passes + 1 : 0;
+  }
+  const w = [0, 0, 0];
+  for (let i = 0; i < n; i += 1) for (let d = 0; d < 3; d += 1) w[d] += alpha[i] * y[i] * X[i][d];
+  const f = (x) => w[0] * x[0] + w[1] * x[1] + w[2] * x[2] + b;
+  const sv = Array.from(alpha, (a) => a > 1e-5);
+  return {
+    C,
+    w,
+    b,
+    sv,
+    nSv: sv.filter(Boolean).length,
+    wrong: X.filter((x, i) => y[i] * f(x) < 0).length,
+    width: 2 / Math.hypot(...w),
+  };
+}
+const SVM_DATA = (() => {
+  const rnd = seeded(2024);
+  const X = [];
+  const y = [];
+  for (let i = 0; i < 64; i += 1) {
+    const label = i < 34 ? 1 : -1;
+    X.push([label * 0.7 + gaussian(rnd) * 0.5, label * 0.25 + gaussian(rnd) * 0.55, gaussian(rnd) * 0.55]);
+    y.push(label);
+  }
+  return { X, y };
+})();
+const svmCache = new Map();
+const svmFor = (C) => {
+  if (!svmCache.has(C)) svmCache.set(C, trainSvm(SVM_DATA.X, SVM_DATA.y, C));
+  return svmCache.get(C);
+};
+
+function Margin({ onInfo, params = {} }) {
+  const model = useMemo(() => svmFor(params.c ?? 1), [params.c]);
+  const target = useRef(model);
+  target.current = model;
+  const cur = useRef({ w: [...model.w], b: model.b });
+  const planes = [useRef(null), useRef(null), useRef(null)];
+  const points = useRef(null);
+  const halos = useRef(null);
+  const halo = useRef(new Float32Array(SVM_DATA.X.length));
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const zAxis = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+  const facing = useMemo(() => new THREE.Quaternion(), []);
+  const nrm = useMemo(() => new THREE.Vector3(), []);
+  const colours = useMemo(() => ({ good: new THREE.Color(COLOURS.teal), poor: new THREE.Color(COLOURS.rose) }), []);
+  const square = useMemo(() => new THREE.PlaneGeometry(3.4, 3.4), []);
+  const outline = useMemo(() => new THREE.EdgesGeometry(square), [square]);
+  // A line from each support vector straight to the decision plane: its distance to the boundary.
+  const gaps = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(SVM_DATA.X.length * 6), 3));
+    return g;
+  }, []);
+  useEffect(
+    () => () => {
+      square.dispose();
+      outline.dispose();
+      gaps.dispose();
+    },
+    [square, outline, gaps],
+  );
+
+  useEffect(() => {
+    onInfo?.(
+      `C = ${model.C} · ${model.nSv} of ${SVM_DATA.X.length} points are support vectors · margin width ${model.width.toFixed(2)} · ${model.wrong} training points misclassified`,
+    );
+  }, [model, onInfo]);
+
+  useFrame((state, dt) => {
+    const c = cur.current;
+    const t = target.current;
+    // Rings around support vectors turn to face the camera.
+    halos.current.parent.getWorldQuaternion(facing).invert().multiply(state.camera.quaternion);
+    for (let d = 0; d < 3; d += 1) c.w[d] = damp(c.w[d], t.w[d], 2.4, dt);
+    c.b = damp(c.b, t.b, 2.4, dt);
+    const norm = Math.hypot(...c.w);
+    nrm.set(c.w[0] / norm, c.w[1] / norm, c.w[2] / norm);
+    const gp = gaps.attributes.position;
+    SVM_DATA.X.forEach((x, i) => {
+      const fx = (c.w[0] * x[0] + c.w[1] * x[1] + c.w[2] * x[2] + c.b) / (norm * norm);
+      const k = halo.current[i] > 0.5 ? 1 : 0;
+      gp.setXYZ(i * 2, x[0], x[1], x[2]);
+      gp.setXYZ(i * 2 + 1, x[0] - k * fx * c.w[0], x[1] - k * fx * c.w[1], x[2] - k * fx * c.w[2]);
+    });
+    gp.needsUpdate = true;
+    // Planes w·x + b = k for k = 0 (decision) and ±1 (margins).
+    [0, 1, -1].forEach((k, i) => {
+      const g = planes[i].current;
+      if (!g) return;
+      g.quaternion.setFromUnitVectors(zAxis, nrm);
+      g.position.copy(nrm).multiplyScalar((k - c.b) / norm);
+    });
+    SVM_DATA.X.forEach((x, i) => {
+      halo.current[i] = damp(halo.current[i], t.sv[i] ? 1 : 0, 4, dt);
+      dummy.position.set(x[0], x[1], x[2]);
+      dummy.scale.setScalar(1);
+      dummy.updateMatrix();
+      points.current.setMatrixAt(i, dummy.matrix);
+      points.current.setColorAt(i, SVM_DATA.y[i] > 0 ? colours.good : colours.poor);
+      dummy.scale.setScalar(Math.max(halo.current[i], 0.0001));
+      dummy.quaternion.copy(facing);
+      dummy.updateMatrix();
+      dummy.quaternion.identity();
+      halos.current.setMatrixAt(i, dummy.matrix);
+    });
+    points.current.instanceMatrix.needsUpdate = true;
+    halos.current.instanceMatrix.needsUpdate = true;
+    if (points.current.instanceColor) points.current.instanceColor.needsUpdate = true;
+  });
+
+  const plane = (i, colour, opacity) => (
+    <group ref={planes[i]}>
+      <mesh geometry={square}>
+        <meshBasicMaterial color={colour} transparent opacity={opacity} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <lineSegments geometry={outline}>
+        <lineBasicMaterial color={colour} transparent opacity={0.55} />
+      </lineSegments>
+    </group>
+  );
+
+  return (
+    <group rotation={[0.25, -0.9, 0]} scale={0.95}>
+      {plane(0, COLOURS.lavender, 0.2)}
+      <lineSegments geometry={gaps}>
+        <lineBasicMaterial color={COLOURS.champagne} transparent opacity={0.7} />
+      </lineSegments>
+      {plane(1, COLOURS.teal, 0.06)}
+      {plane(2, COLOURS.rose, 0.06)}
+      <instancedMesh ref={points} args={[undefined, undefined, SVM_DATA.X.length]}>
+        <sphereGeometry args={[0.065, 14, 10]} />
+        <meshBasicMaterial color="#ffffff" />
+      </instancedMesh>
+      <instancedMesh ref={halos} args={[undefined, undefined, SVM_DATA.X.length]}>
+        <torusGeometry args={[0.12, 0.008, 6, 28]} />
+        <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.8} />
+      </instancedMesh>
+      <mesh visible={false}>
+        <boxGeometry args={[4, 4, 4]} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ---------- forest: a random forest trained here ---------- */
+// Two interleaved half-moons (synthetic): 160 training points, 80 held out.
+const MOONS = (() => {
+  const rnd = seeded(77);
+  const pts = [];
+  for (let i = 0; i < 240; i += 1) {
+    const label = i % 2;
+    const t = Math.PI * rnd();
+    const x = (label ? 1 - Math.cos(t) : Math.cos(t)) + gaussian(rnd) * 0.2;
+    const y = (label ? 0.5 - Math.sin(t) : Math.sin(t)) + gaussian(rnd) * 0.2;
+    pts.push({ x: (x - 0.5) * 1.3, y: (y - 0.25) * 1.3, label, test: i >= 160 });
+  }
+  return pts;
+})();
+const MOON_TRAIN = MOONS.filter((p) => !p.test);
+const MOON_TEST = MOONS.filter((p) => p.test);
+const GRID = { nx: 34, ny: 22, x0: -2.3, x1: 2.3, y0: -1.5, y1: 1.5 };
+const CELLS = (() => {
+  const out = [];
+  for (let j = 0; j < GRID.ny; j += 1)
+    for (let i = 0; i < GRID.nx; i += 1)
+      out.push({
+        x: GRID.x0 + ((i + 0.5) / GRID.nx) * (GRID.x1 - GRID.x0),
+        y: GRID.y0 + ((j + 0.5) / GRID.ny) * (GRID.y1 - GRID.y0),
+      });
+  return out;
+})();
+
+// CART with Gini impurity; each split looks at one randomly chosen feature
+// (max_features = 1 of 2), and each tree sees a bootstrap sample.
+function growTree(data, depth, maxDepth, rnd) {
+  const n = data.length;
+  const pos = data.reduce((s, d) => s + d.label, 0);
+  const p = pos / n;
+  if (depth >= maxDepth || pos === 0 || pos === n || n < 4) return { p };
+  const feature = rnd() < 0.5 ? "x" : "y";
+  const sorted = [...data].sort((a, b) => a[feature] - b[feature]);
+  let best = null;
+  let bestG = Infinity;
+  let left = 0;
+  for (let i = 0; i < n - 1; i += 1) {
+    left += sorted[i].label;
+    if (sorted[i][feature] === sorted[i + 1][feature]) continue;
+    const nl = i + 1;
+    const nr = n - nl;
+    const pl = left / nl;
+    const pr = (pos - left) / nr;
+    const g = nl * pl * (1 - pl) + nr * pr * (1 - pr);
+    if (g < bestG) {
+      bestG = g;
+      best = (sorted[i][feature] + sorted[i + 1][feature]) / 2;
+    }
+  }
+  if (best === null) return { p };
+  return {
+    feature,
+    t: best,
+    l: growTree(
+      sorted.filter((d) => d[feature] <= best),
+      depth + 1,
+      maxDepth,
+      rnd,
+    ),
+    r: growTree(
+      sorted.filter((d) => d[feature] > best),
+      depth + 1,
+      maxDepth,
+      rnd,
+    ),
+  };
+}
+function predictTree(node, pt) {
+  let n = node;
+  while (n.l) n = pt[n.feature] <= n.t ? n.l : n.r;
+  return n.p;
+}
+const MAX_TREES = 100;
+const forestCache = new Map();
+// Every tree's prediction for every grid cell and point, for one max depth.
+function forestVotes(maxDepth) {
+  if (forestCache.has(maxDepth)) return forestCache.get(maxDepth);
+  const rnd = seeded(1000 + maxDepth);
+  const trees = Array.from({ length: MAX_TREES }, () => {
+    const sample = MOON_TRAIN.map(() => MOON_TRAIN[Math.floor(rnd() * MOON_TRAIN.length)]);
+    return growTree(sample, 0, maxDepth, rnd);
+  });
+  const votes = (pts) => trees.map((t) => Float32Array.from(pts, (pt) => predictTree(t, pt)));
+  const out = { cells: votes(CELLS), train: votes(MOON_TRAIN), test: votes(MOON_TEST) };
+  forestCache.set(maxDepth, out);
+  return out;
+}
+const average = (votes, nTrees) => {
+  const m = votes[0].length;
+  const avg = new Float32Array(m);
+  for (let t = 0; t < nTrees; t += 1) for (let i = 0; i < m; i += 1) avg[i] += votes[t][i] / nTrees;
+  return avg;
+};
+const accuracy = (probs, pts) => pts.filter((pt, i) => (probs[i] > 0.5 ? 1 : 0) === pt.label).length / pts.length;
+
+function Forest({ onInfo, params = {} }) {
+  const nTrees = params.trees ?? 1;
+  const maxDepth = params.depth ?? 8;
+  const state = useMemo(() => {
+    const v = forestVotes(maxDepth);
+    const train = average(v.train, nTrees);
+    const test = average(v.test, nTrees);
+    return { cells: average(v.cells, nTrees), test, trainAcc: accuracy(train, MOON_TRAIN), testAcc: accuracy(test, MOON_TEST) };
+  }, [nTrees, maxDepth]);
+  const target = useRef(state);
+  target.current = state;
+  const tiles = useRef(null);
+  const trainPts = useRef(null);
+  const testPts = useRef(null);
+  const shown = useRef(new Float32Array(CELLS.length).fill(0.5));
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const col = useMemo(() => new THREE.Color(), []);
+  const palette = useMemo(
+    () => ({
+      rose: new THREE.Color(COLOURS.rose),
+      teal: new THREE.Color(COLOURS.teal),
+      mid: new THREE.Color("#3a4166"),
+      gold: new THREE.Color(COLOURS.gold),
+    }),
+    [],
+  );
+  const cw = (GRID.x1 - GRID.x0) / GRID.nx;
+  const ch = (GRID.y1 - GRID.y0) / GRID.ny;
+
+  useEffect(() => {
+    const pc = (v) => `${(v * 100).toFixed(1)}%`;
+    onInfo?.(
+      `${nTrees} ${nTrees === 1 ? "tree" : "trees"}, max depth ${maxDepth} · training accuracy ${pc(state.trainAcc)} · test accuracy ${pc(state.testAcc)} on ${MOON_TEST.length} held-out points`,
+    );
+  }, [state, nTrees, maxDepth, onInfo]);
+
+  // The points never move, so they are placed once.
+  useEffect(() => {
+    MOON_TRAIN.forEach((pt, i) => {
+      dummy.position.set(pt.x, 0.95, pt.y);
+      dummy.scale.setScalar(1);
+      dummy.updateMatrix();
+      trainPts.current.setMatrixAt(i, dummy.matrix);
+      trainPts.current.setColorAt(i, pt.label ? palette.teal : palette.rose);
+    });
+    trainPts.current.instanceMatrix.needsUpdate = true;
+    if (trainPts.current.instanceColor) trainPts.current.instanceColor.needsUpdate = true;
+    MOON_TEST.forEach((pt, i) => {
+      dummy.position.set(pt.x, 0.95, pt.y);
+      dummy.updateMatrix();
+      testPts.current.setMatrixAt(i, dummy.matrix);
+    });
+    testPts.current.instanceMatrix.needsUpdate = true;
+  }, [dummy, palette]);
+
+  useFrame((_, dt) => {
+    const t = target.current;
+    CELLS.forEach((c, i) => {
+      shown.current[i] = damp(shown.current[i], t.cells[i], 5, dt);
+      const p = shown.current[i];
+      // Height is how strongly the trees agree; colour is which way they vote.
+      const h = 0.03 + Math.abs(2 * p - 1) * 0.55;
+      dummy.position.set(c.x, h / 2, c.y);
+      dummy.scale.set(cw * 0.9, h, ch * 0.9);
+      dummy.updateMatrix();
+      tiles.current.setMatrixAt(i, dummy.matrix);
+      if (p >= 0.5) col.copy(palette.mid).lerp(palette.teal, (p - 0.5) * 2);
+      else col.copy(palette.mid).lerp(palette.rose, (0.5 - p) * 2);
+      tiles.current.setColorAt(i, col);
+    });
+    tiles.current.instanceMatrix.needsUpdate = true;
+    if (tiles.current.instanceColor) tiles.current.instanceColor.needsUpdate = true;
+    MOON_TEST.forEach((pt, i) => {
+      const right = (t.test[i] > 0.5 ? 1 : 0) === pt.label;
+      testPts.current.setColorAt(i, right ? (pt.label ? palette.teal : palette.rose) : palette.gold);
+    });
+    if (testPts.current.instanceColor) testPts.current.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <group rotation={[0.62, -0.35, 0]} position={[0, -0.5, 0]} scale={0.9}>
+      <instancedMesh ref={tiles} args={[undefined, undefined, CELLS.length]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.55} metalness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={trainPts} args={[undefined, undefined, MOON_TRAIN.length]}>
+        <sphereGeometry args={[0.045, 10, 8]} />
+        <meshBasicMaterial color="#ffffff" />
+      </instancedMesh>
+      <instancedMesh ref={testPts} args={[undefined, undefined, MOON_TEST.length]}>
+        <octahedronGeometry args={[0.085, 0]} />
         <meshBasicMaterial color="#ffffff" />
       </instancedMesh>
     </group>
   );
 }
 
-const SHAPES = { surface: Surface, parcels: Parcels, orb: Orb, hex: Hex, crystals: Crystals, orbits: Orbits, knot: Knot, margin: Margin };
-const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, orbits: 5.6, knot: 6, margin: 5.4 };
+const SHAPES = {
+  surface: Surface,
+  parcels: Parcels,
+  orb: Orb,
+  hex: Hex,
+  crystals: Crystals,
+  routing: Routing,
+  projects: Projects,
+  margin: Margin,
+  forest: Forest,
+};
+const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, routing: 6.4, projects: 6, margin: 6.2, forest: 7.4 };
 
-export default function Gem({ shape = "crystals", running = true }) {
+const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0.08, forest: 0.05 };
+
+export default function Gem({ shape = "crystals", running = true, onInfo, params }) {
   const Shape = SHAPES[shape] ?? Crystals;
   const drag = useRef({ vx: 0, vy: 0, rx: 0, down: false, x: 0, y: 0 });
   const onDown = (e) => {
@@ -607,8 +1117,8 @@ export default function Gem({ shape = "crystals", running = true }) {
       <ambientLight intensity={0.6} />
       <directionalLight position={[4, 6, 5]} intensity={1.6} />
       <pointLight position={[-4, -2, 3]} intensity={18} color={COLOURS.lavender} />
-      <Turntable drag={drag} spin={shape === "surface" ? 0.12 : 0.2}>
-        <Shape />
+      <Turntable drag={drag} spin={SPIN[shape] ?? 0.2}>
+        <Shape onInfo={onInfo} params={params} />
       </Turntable>
     </Canvas>
   );

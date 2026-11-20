@@ -74,7 +74,7 @@ export default function Archive() {
         eyebrow="Art & making"
         title="Painting, drawing, models and 3D"
         accent="rose"
-        visual={<Scene3D shape="crystals" label="Interactive 3D crystals" hint="Tap a crystal to energise it. Tap one three times, quickly, to turn it into bubbles." className="h-[18rem] sm:h-[22rem]" />}
+        visual={<Scene3D shape="crystals" label="Interactive 3D crystals" hint="Tap a crystal to energise it. Tap one three times, quickly, to turn it into bubbles." className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]" />}
       >
         <p className="lede">
           Through pencil, acrylic, watercolour, clay and Blender, I make my own small worlds. Every piece narrates a story. Drawing taught

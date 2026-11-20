@@ -167,6 +167,25 @@ test("project pages load their 3D piece lazily and it survives taps", async ({ p
   expect(errors).toEqual([]);
 });
 
+test("the ML Lab models retrain from their sliders and report live accuracy", async ({ page, isMobile }) => {
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  for (const [path, slider, to, pattern] of [
+    ["/ml-lab", "#forest-trees", "7", /^100 trees, .*test accuracy \d+\.\d%/],
+    ["/ml-lab/wine-quality", "#margin-c", "8", /^C = 100 · \d+ of 64 points are support vectors/],
+  ]) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    if (isMobile) await page.touchscreen.tap(6, 130);
+    await expect(page.locator("[data-scene] canvas")).toBeVisible({ timeout: 20000 });
+    const readout = page.locator("[data-scene] figcaption p[aria-live]");
+    await expect(readout).not.toBeEmpty();
+    await page.locator(slider).fill(to);
+    await expect(readout).toHaveText(pattern);
+  }
+  expect(errors).toEqual([]);
+});
+
 test("pages other than home never request the WebGL bundle", async ({ page }) => {
   const scripts = [];
   page.on("request", (r) => r.resourceType() === "script" && scripts.push(r.url()));

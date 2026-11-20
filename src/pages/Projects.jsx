@@ -12,11 +12,11 @@ export default function Projects() {
         eyebrow="Projects"
         title="Things I built, and how I thought about them"
         accent="teal"
-        visual={<Scene3D shape="knot" label="Interactive 3D torus knot" hint="One idea, tied four different ways. Tap to re-tie it; drag to turn it." className="h-[18rem] sm:h-[22rem]" />}
+        visual={<Scene3D shape="projects" label="Interactive 3D ring of the four project stories" hint="Drag to turn the ring." className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]" />}
       >
         <p className="lede">
           I rarely start with the code. I start with the question underneath it: what has to be true for this to work, and what could quietly
-          break it? Each project below is told that way: where it started, the forks I weighed, where it pushed back, and what is still open.
+          break it? Each project below is told that way: where it started, the decisions I weighed, where it pushed back, and what is still open.
         </p>
       </PageHeader>
 
@@ -45,7 +45,8 @@ export default function Projects() {
                     <TagList items={p.tech.slice(0, 6)} label={`${p.title} technologies`} />
                   </div>
                   <p className="mt-6 font-label text-sm font-semibold text-accent">
-                    {p.thinking.length} {p.thinking.length === 1 ? "fork" : "forks"} · {p.pushback.length} {p.pushback.length === 1 ? "problem" : "problems"} solved{" "}
+                    {p.thinking.length} design {p.thinking.length === 1 ? "decision" : "decisions"} · {p.pushback.length} debugging{" "}
+                    {p.pushback.length === 1 ? "story" : "stories"}{" "}
                     <span aria-hidden="true">→</span>
                   </p>
                 </div>

@@ -37,7 +37,7 @@ export default {
       },
       maxWidth: {
         prose: "68ch",
-        page: "72rem",
+        page: "104rem",
       },
       letterSpacing: {
         label: "0.14em",

@@ -71,7 +71,7 @@ export const pages = {
   ),
   "/projects": {
     title: "Projects · Bushra Khandoker",
-    description: "Project stories told from the question up: StudyBuddy, Bushal, the Relevia app and HEXALOCK, with the forks, the bugs and what is still open.",
+    description: "Project stories told from the question up: StudyBuddy, Bushal, the Relevia app and HEXALOCK, with the decisions, the bugs and what is still open.",
   },
   ...Object.fromEntries(
     projects.map((p) => [

@@ -95,7 +95,7 @@ export default function Home() {
               and I report it that way.
             </p>
             <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="border-l-2 border-accent/50 py-1 pl-4">
                 <dt className="text-sm text-faint">Safety routing recall, held-out urgent cases</dt>
                 <dd className="num mt-1 text-3xl text-cosmic">
                   {s1.tp}/{relevia.safety.urgent} <span aria-hidden="true">→</span>
@@ -105,7 +105,7 @@ export default function Home() {
                   S1 to S2 (text normalisation), no false positives on {relevia.safety.nonUrgent} ordinary messages. Synthetic, agent-labelled set.
                 </dd>
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="border-l-2 border-accent/50 py-1 pl-4">
                 <dt className="text-sm text-faint">Pilot relevance, developed vs minimal prompt</dt>
                 <dd className="num mt-1 text-3xl text-cosmic">{fmt(rel.mean, 3)}</dd>
                 <dd className="mt-1 text-sm text-muted">
@@ -150,7 +150,7 @@ export default function Home() {
             </div>
             <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {lab.headline.slice(0, 2).map((h) => (
-                <div key={h.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div key={h.label} className="border-l-2 border-accent/50 py-1 pl-4">
                   <dt className="text-sm text-faint">{h.label}</dt>
                   <dd className="num mt-1 text-3xl text-cosmic">{h.value}</dd>
                   <dd className="mt-1 text-sm text-muted">{h.of}</dd>
@@ -165,7 +165,7 @@ export default function Home() {
       <Section id="featured-projects" eyebrow="Behind the build" title="How I approach a build" accent="gold">
         <p className="prose-body mb-8">
           I like to find the question underneath a project before I write code for it. Each of these is told as a story: where it
-          started, the forks I weighed, and where it pushed back.
+          started, the decisions I weighed, and where it pushed back.
         </p>
         <RevealGroup as="ul" className="grid gap-6 md:grid-cols-2">
           {projects.map((p) => (

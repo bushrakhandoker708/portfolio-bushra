@@ -6,48 +6,37 @@ import { repoTree } from "../data/site";
 import RepoActivity from "../components/RepoActivity";
 import Scene3D from "../components/cosmos/Scene3D";
 import { Callout, ExternalLink, PageHeader, Section, StatusBadge } from "../components/ui";
-import { RevealGroup, RevealItem, Tilt } from "../components/motion";
+import { RevealGroup, RevealItem } from "../components/motion";
 
-const LEVEL = {
-  notes: { state: "partial", label: "Notes" },
-  started: { state: "planned", label: "Started" },
-};
 const ACCENTS = ["gold", "teal", "rose", "sky", "lavender"];
 // A tag filter only helps once there is something to filter.
 const FILTER_FROM = 3;
 
-/** One experiment as a card: the question, two headline numbers, the method tags. */
+/** One experiment: the question, two headline numbers, the method tags. */
 function ExperimentCard({ e }) {
   return (
-    <Tilt as="article" className="card card-hover group relative overflow-hidden p-6 sm:p-8" max={4}>
-      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-      <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+    <article className="card card-hover group relative overflow-hidden p-6 sm:p-8 xl:p-10">
+      <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] xl:gap-14">
         <div>
           <p className="font-label text-xs font-semibold uppercase tracking-label text-accent">
-            Experiment {String(e.number).padStart(2, "0")} · {e.kind}
+            Experiment {String(e.number).padStart(2, "0")} · {e.kind} · {e.period}
           </p>
-          <h3 className="mt-2 text-2xl font-semibold sm:text-3xl">
+          <h3 className="mt-3 text-2xl font-semibold sm:text-3xl 2xl:text-4xl">
             <Link to={`/ml-lab/${e.slug}`} className="text-ink no-underline after:absolute after:inset-0 after:z-20 hover:text-accent">
               {e.title}
             </Link>
           </h3>
-          <p className="mt-3 font-sub text-lg italic text-champagne">{e.tagline}</p>
-          <p className="mt-4 text-muted">{e.summary}</p>
-          <ul className="mt-5 flex flex-wrap gap-2" aria-label="Methods">
-            {e.tags.map((t) => (
-              <li key={t} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-label text-xs text-muted">
-                {t}
-              </li>
-            ))}
-          </ul>
-          <RepoActivity repo={e.repo} short className="mt-5" />
+          <p className="mt-4 font-sub text-lg italic text-champagne sm:text-xl">{e.question}</p>
+          <p className="mt-4 max-w-prose text-muted">{e.summary}</p>
+          <p className="mt-5 font-label text-xs text-faint">{e.tags.join(" · ")}</p>
+          <RepoActivity repo={e.repo} short className="mt-3" />
         </div>
-        <div className="grid content-start gap-4">
-          <dl className="grid gap-4">
+        <div className="flex flex-col justify-between gap-8">
+          <dl className="grid gap-6">
             {e.headline.slice(0, 2).map((h) => (
-              <div key={h.label} className="rounded-xl border border-white/10 bg-canvas/50 p-4">
+              <div key={h.label} className="border-l-2 border-accent/50 pl-4">
                 <dt className="sr-only">{h.label}</dt>
-                <dd className="num text-3xl text-accent">{h.value}</dd>
+                <dd className="num text-3xl text-ink">{h.value}</dd>
                 <dd aria-hidden="true" className="mt-1 text-sm text-faint">
                   {h.label}
                 </dd>
@@ -59,7 +48,7 @@ function ExperimentCard({ e }) {
           </p>
         </div>
       </div>
-    </Tilt>
+    </article>
   );
 }
 
@@ -95,33 +84,35 @@ function Experiments() {
   );
 }
 
-/** A foundations topic, with the experiments that put it to use. */
+/** A foundations topic as a row, with the experiments that put it to use. */
 function Topic({ t }) {
   const used = experimentsUsing(t.name);
   return (
-    <li
-      className={`flex h-full flex-col rounded-xl border p-4 ${used.length ? "border-accent/35 bg-accent/[0.05]" : "border-white/10 bg-white/[0.02]"}`}
-    >
-      <div className="flex items-start justify-between gap-3">
+    <li className="rule-top flex flex-col py-4">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        {used.length > 0 && <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 translate-y-[-0.15rem] rounded-full bg-accent" />}
         <ExternalLink href={repoTree("Ai-Machine-Learning", t.path)} className="font-medium">
           {t.name}
         </ExternalLink>
-        <StatusBadge state={LEVEL[t.level].state}>{LEVEL[t.level].label}</StatusBadge>
+        <span className="num text-xs text-faint">{t.notes} notes</span>
+        {t.level === "started" && <StatusBadge state="planned">Started</StatusBadge>}
       </div>
-      <p className="mt-2 flex-1 text-sm text-muted">{t.covers}</p>
-      <p className="mt-3 text-xs text-faint">
-        <span className="num text-ink">{t.notes}</span> notes
-        {t.progress ? ` · ${t.progress}` : ""}
-      </p>
-      {used.length > 0 && (
-        <p className="mt-2 text-xs">
-          <span className="text-faint">Used in </span>
-          {used.map((e, i) => (
-            <span key={e.slug}>
-              {i > 0 && ", "}
-              <Link to={`/ml-lab/${e.slug}`}>{e.short}</Link>
-            </span>
-          ))}
+      <p className="mt-1.5 text-sm text-muted">{t.covers}</p>
+      {(t.progress || used.length > 0) && (
+        <p className="mt-1.5 text-xs text-faint">
+          {t.progress}
+          {t.progress && used.length > 0 && " · "}
+          {used.length > 0 && (
+            <>
+              used in{" "}
+              {used.map((e, i) => (
+                <span key={e.slug}>
+                  {i > 0 && ", "}
+                  <Link to={`/ml-lab/${e.slug}`}>{e.short}</Link>
+                </span>
+              ))}
+            </>
+          )}
         </p>
       )}
     </li>
@@ -131,12 +122,10 @@ function Topic({ t }) {
 export default function MlLab() {
   const topics = mlLab.groups.flatMap((g) => g.topics);
   const notes = topics.reduce((n, t) => n + t.notes, 0);
-  const applied = topics.filter((t) => experimentsUsing(t.name).length > 0).length;
   const stats = [
     [experiments.length, experiments.length === 1 ? "published experiment" : "published experiments"],
     [notes.toLocaleString("en-GB"), "study notes"],
     [topics.length, "foundation topics"],
-    [applied, "topics already used in an experiment"],
   ];
 
   return (
@@ -147,16 +136,16 @@ export default function MlLab() {
         accent="sky"
         visual={
           <Scene3D
-            shape="margin"
-            hint="Drag to turn · tap to bend the boundary"
-            label="Interactive 3D model of two classes of points and a decision boundary"
-            className="h-[20rem] sm:h-[24rem]"
+            shape="forest"
+            hint="A random forest trained in your browser on synthetic data: two interleaved half-moons. Tile colour is the forest’s vote and tile height how strongly its trees agree. Spheres are training points; diamonds are held-out test points, gold when misclassified."
+            label="Interactive 3D random forest: a grid of tiles showing its vote over two classes of points, with sliders for the number of trees and their depth"
+            className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]"
           />
         }
       >
         <p className="lede">{mlLab.intro}</p>
         <p className="mt-4 max-w-prose text-muted">{mlLab.labIntro}</p>
-        <dl className="mt-8 grid max-w-2xl grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+        <dl className="mt-8 grid max-w-xl grid-cols-3 gap-x-6 gap-y-4">
           {stats.map(([v, label]) => (
             <div key={label} className="border-l border-accent/40 pl-3">
               <dt className="sr-only">{label}</dt>
@@ -167,7 +156,7 @@ export default function MlLab() {
         </dl>
       </PageHeader>
 
-      <Section id="experiments" eyebrow="Experiments" title="Questions tested on real data" accent="sky">
+      <Section id="experiments" eyebrow="On real data" title="Experiments" accent="sky">
         <p className="prose-body mb-8">
           Each experiment starts from one question and ends with what it can and cannot show. The page for each one walks through the data,
           the decisions, the results and the places where the analysis pushed back.
@@ -175,19 +164,21 @@ export default function MlLab() {
         <Experiments />
       </Section>
 
-      <Section id="method" eyebrow="Method" title="Rules I hold every experiment to" accent="gold">
-        <RevealGroup as="ol" className="grid gap-5 md:grid-cols-2">
+      <Section id="method" eyebrow="Method" title="How I run an experiment" accent="gold">
+        <RevealGroup as="ol" className="grid gap-x-12 md:grid-cols-2">
           {mlLab.method.map((m, i) => (
-            <RevealItem as="li" key={m.title} className="card relative overflow-hidden p-6">
-              <span aria-hidden="true" className="num absolute -right-2 -top-4 text-[5.5rem] leading-none text-accent/10">
-                {i + 1}
+            <RevealItem as="li" key={m.title} className="rule-top grid grid-cols-[3rem_1fr] gap-x-2 py-6">
+              <span aria-hidden="true" className="num text-3xl leading-none text-accent/70">
+                {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="relative text-xl font-semibold">{m.title}</h3>
-              <p className="relative mt-3 text-muted">{m.text}</p>
-              <p className="relative mt-4 text-sm">
-                <span className="text-faint">See it in practice: </span>
-                <Link to={`/ml-lab/${m.where.slug}#${m.where.anchor}`}>{m.where.label}</Link>
-              </p>
+              <div>
+                <h3 className="text-xl font-semibold">{m.title}</h3>
+                <p className="mt-2 text-muted">{m.text}</p>
+                <p className="mt-3 text-sm">
+                  <span className="text-faint">In practice: </span>
+                  <Link to={`/ml-lab/${m.where.slug}#${m.where.anchor}`}>{m.where.label}</Link>
+                </p>
+              </div>
             </RevealItem>
           ))}
         </RevealGroup>
@@ -196,21 +187,21 @@ export default function MlLab() {
       <Section id="foundations" eyebrow="Foundations" title="The notes underneath" accent="teal">
         <p className="prose-body">
           {notes.toLocaleString("en-GB")} notes in my <ExternalLink href={mlLab.repo}>Ai-Machine-Learning vault</ExternalLink>, grouped by
-          subject. Highlighted topics are already put to work in an experiment.
+          subject. A dot marks a topic an experiment already uses.
         </p>
         <div className="mt-6">
           <Callout title="What this section does and does not claim">{mlLab.evidenceNote}</Callout>
         </div>
-        <div className="mt-10 grid gap-10">
+        <div className="mt-12 grid gap-12">
           {mlLab.groups.map((g, gi) => (
-            <div key={g.title} data-accent={ACCENTS[gi % ACCENTS.length]}>
-              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 pb-2">
+            <div key={g.title} data-accent={ACCENTS[gi % ACCENTS.length]} className="grid gap-x-12 gap-y-3 lg:grid-cols-[15rem_1fr]">
+              <div>
                 <h3 className="text-xl font-semibold">{g.title}</h3>
-                <p className="num text-sm text-faint">
+                <p className="num mt-1 text-sm text-faint">
                   {g.topics.reduce((n, t) => n + t.notes, 0)} notes · {g.topics.length} {g.topics.length === 1 ? "topic" : "topics"}
                 </p>
               </div>
-              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-x-10 sm:grid-cols-2 2xl:grid-cols-3">
                 {g.topics.map((t) => (
                   <Topic key={t.name} t={t} />
                 ))}

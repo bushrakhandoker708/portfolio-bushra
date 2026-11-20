@@ -4,9 +4,9 @@ import { getExperiment, neighbours } from "../data/lab";
 import { mlLab } from "../data/mlLab";
 import { repoTree } from "../data/site";
 import { Callout, ExternalLink, Figure, PageHeader, ScrollRegion, Section, SmartLink, TagList } from "../components/ui";
-import { Reveal, RevealGroup, RevealItem, Tilt } from "../components/motion";
+import { Reveal, RevealGroup, RevealItem } from "../components/motion";
 import { Fork, Pushback } from "../components/story";
-import { ChartFigure, ConfusionMatrix, DataTable, IntervalPlot, Pipeline } from "../components/research/charts";
+import { ChartFigure, ConfusionMatrix, DataTable, IntervalPlot } from "../components/research/charts";
 import { CorrelationBars, ErrorsByScore, LabelExplorer, MetricExplorer } from "../components/lab/LabCharts";
 import Scene3D from "../components/cosmos/Scene3D";
 import NotFound from "./NotFound";
@@ -25,19 +25,15 @@ function Bullets({ items }) {
   );
 }
 
-/** The few numbers a reader should leave with. */
+/** The few numbers a reader should leave with, divided by hairlines rather than boxed. */
 function Headline({ items }) {
   return (
-    <RevealGroup as="ul" className="grid gap-4 md:grid-cols-3">
+    <RevealGroup as="ul" className="grid divide-y divide-rule/60 border-y border-rule/60 md:grid-cols-3 md:divide-x md:divide-y-0">
       {items.map((h) => (
-        <RevealItem as="li" key={h.label} className="card relative overflow-hidden p-6">
-          <span
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent"
-          />
-          <p className="num text-4xl text-accent sm:text-5xl">{h.value}</p>
-          <p className="mt-2 font-medium text-ink">{h.label}</p>
-          <p className="mt-2 text-sm text-faint">{h.of}</p>
+        <RevealItem as="li" key={h.label} className="py-6 md:px-8 md:py-8 md:first:pl-0">
+          <p className="num text-4xl text-ink sm:text-5xl">{h.value}</p>
+          <p className="mt-3 font-medium text-accent">{h.label}</p>
+          <p className="mt-2 max-w-sm text-sm text-faint">{h.of}</p>
         </RevealItem>
       ))}
     </RevealGroup>
@@ -76,35 +72,56 @@ function DataCard({ d }) {
   );
 }
 
-/** One classifier explained: the family, the idea, the rule, the cost. */
+/** One classifier explained: the family, the idea, the rule, the cost. Columns divided by hairlines. */
 function TheoryCard({ t, i }) {
   return (
-    <RevealItem as="li" className="h-full">
-      <Tilt className="card relative h-full overflow-hidden p-6 sm:p-7" max={5}>
-        <p className="font-label text-xs font-semibold uppercase tracking-label text-accent">
-          {String(i + 1).padStart(2, "0")} · {t.family}
-        </p>
-        <h3 className="mt-2 text-2xl font-semibold">{t.name}</h3>
-        <p className="mt-3 text-muted">{t.idea}</p>
-        <p
-          className="mt-5 overflow-x-auto rounded-lg border border-white/10 bg-canvas/60 px-4 py-3 font-mono text-sm text-champagne"
-          aria-label={`Rule: ${t.formula}`}
-        >
-          {t.formula}
-        </p>
-        <dl className="mt-5 space-y-2 text-sm">
-          <div>
-            <dt className="inline text-faint">Boundary: </dt>
-            <dd className="inline text-muted">{t.boundary}</dd>
-          </div>
-          <div>
-            <dt className="inline text-faint">Cost: </dt>
-            <dd className="inline text-muted">{t.cost}</dd>
-          </div>
-        </dl>
-        <p className="mt-4 text-xs text-faint">{t.reference}</p>
-      </Tilt>
+    <RevealItem as="li" className="flex flex-col py-8 lg:px-8 lg:py-2 lg:first:pl-0">
+      <p className="font-label text-xs font-semibold uppercase tracking-label text-accent">
+        {String(i + 1).padStart(2, "0")} · {t.family}
+      </p>
+      <h3 className="mt-2 text-2xl font-semibold">{t.name}</h3>
+      <p className="mt-3 text-muted">{t.idea}</p>
+      <p
+        className="mt-5 overflow-x-auto border-l-2 border-accent/60 py-1 pl-4 font-mono text-sm text-champagne"
+        aria-label={`Rule: ${t.formula}`}
+      >
+        {t.formula}
+      </p>
+      <dl className="mt-5 space-y-2 text-sm">
+        <div>
+          <dt className="inline text-faint">Boundary: </dt>
+          <dd className="inline text-muted">{t.boundary}</dd>
+        </div>
+        <div>
+          <dt className="inline text-faint">Cost: </dt>
+          <dd className="inline text-muted">{t.cost}</dd>
+        </div>
+      </dl>
+      <p className="mt-auto pt-4 text-xs text-faint">{t.reference}</p>
     </RevealItem>
+  );
+}
+
+/** The protocol as one track: every step was applied to every model, so no status badges. */
+function Protocol({ steps }) {
+  return (
+    <RevealGroup as="ol" className="grid gap-x-8 sm:grid-cols-2 xl:grid-cols-4">
+      {steps.map((s, i) => (
+        <RevealItem as="li" key={s.step} className="relative pb-8 pl-8 sm:pl-0 sm:pt-8">
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 left-[0.45rem] top-0 w-px bg-rule sm:left-0 sm:right-4 sm:top-[0.45rem] sm:h-px sm:w-auto"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute left-0 top-1 h-[0.95rem] w-[0.95rem] rounded-full border-2 border-accent bg-canvas sm:top-0"
+          />
+          <p className="num text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
+          <p className="mt-1 font-medium text-ink">{s.step}</p>
+          <p className="mt-1 text-sm text-muted">{s.detail}</p>
+        </RevealItem>
+      ))}
+    </RevealGroup>
   );
 }
 
@@ -128,7 +145,7 @@ export default function LabExperiment() {
             shape={e.scene.shape}
             hint={e.scene.hint}
             label={`Interactive 3D model of two classes and a decision boundary, for ${e.short}`}
-            className="h-[20rem] sm:h-[24rem]"
+            className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]"
           />
         }
       >
@@ -147,17 +164,14 @@ export default function LabExperiment() {
         </ul>
       </PageHeader>
 
-      <Section id="result" eyebrow="In three numbers" title="What came out of it" accent="sky">
+      <Section id="result" eyebrow="Results at a glance" title="Three numbers worth keeping" accent="sky">
         <Headline items={e.headline} />
       </Section>
 
       <Section id="question" eyebrow="The question" title="What I set out to compare" accent="gold">
         <Reveal>
-          <blockquote className="card relative max-w-4xl overflow-hidden p-6 sm:p-8">
-            <span aria-hidden="true" className="absolute -left-2 -top-6 font-serif text-[7rem] leading-none text-accent/25">
-              “
-            </span>
-            <p className="relative font-sub text-xl italic text-ink sm:text-2xl">{e.question}</p>
+          <blockquote className="max-w-4xl border-l-2 border-accent pl-6">
+            <p className="font-sub text-xl italic text-ink sm:text-2xl 2xl:text-3xl">{e.question}</p>
           </blockquote>
         </Reveal>
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_1.15fr]">
@@ -174,7 +188,7 @@ export default function LabExperiment() {
           The three models come from three different ideas of what it means for two wines to be alike: how close they are, which side of a
           margin they fall on, or how likely each class is to have produced them.
         </p>
-        <RevealGroup as="ol" className="grid gap-5 lg:grid-cols-3">
+        <RevealGroup as="ol" className="grid divide-y divide-rule/60 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           {e.theory.map((t, i) => (
             <TheoryCard key={t.name} t={t} i={i} />
           ))}
@@ -185,7 +199,7 @@ export default function LabExperiment() {
         <p className="prose-body mb-8">
           A comparison is only fair if every model sees the same data in the same way. Each step below was applied identically to all three.
         </p>
-        <Pipeline steps={e.protocol} />
+        <Protocol steps={e.protocol} />
       </Section>
 
       <Section id="thinking" eyebrow="Decisions" title="How I thought it through" accent="gold">

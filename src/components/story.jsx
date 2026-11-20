@@ -2,20 +2,20 @@ import { RevealItem } from "./motion";
 
 /* Shared storytelling blocks for project stories and ML Lab experiments. */
 
-/** One fork in the road: the question, the options weighed, the one taken and why. */
+/** One design decision: the question, the options weighed, the one taken and why. */
 export function Fork({ n, question, options, chose, why }) {
   return (
     <RevealItem as="li" className="card relative overflow-hidden p-6 sm:p-7">
-      <p className="num text-sm text-accent">Fork {n}</p>
+      <p className="num text-sm text-accent">Decision {n}</p>
       <h3 className="mt-1 text-xl font-semibold sm:text-2xl">{question}</h3>
-      <ul className="mt-5 grid gap-2" aria-label="Options considered">
+      <ul className="mt-5 grid gap-1.5" aria-label="Options considered">
         {options.map((o, i) => {
           const taken = i === chose;
           return (
             <li
               key={o}
-              className={`flex items-start gap-3 rounded-xl border px-4 py-2.5 text-sm ${
-                taken ? "border-accent/60 bg-accent/10 text-ink" : "border-white/10 text-faint"
+              className={`flex items-start gap-3 border-l-2 py-1.5 pl-3 text-sm ${
+                taken ? "border-accent bg-gradient-to-r from-accent/[0.12] to-transparent text-ink" : "border-white/10 text-faint"
               }`}
             >
               <span aria-hidden="true" className={`mt-0.5 font-label font-semibold ${taken ? "text-accent" : "text-faint"}`}>

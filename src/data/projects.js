@@ -10,7 +10,7 @@ import studyBuddy from "../assets/img/studybuddy-home.webp";
 /*
  * Every project page tells the story of the build, in Bushra's voice:
  *   spark      where it started: the question, in a few paragraphs
- *   thinking   forks in the road: { question, options[], chose, why }
+ *   thinking   design decisions: { question, options[], chose, why }
  *   pushback   where it fought back: { title, expected, observed, found, changed }
  *   checked    how I know it works (and where I don't yet)
  *   limitations, future   what is still open
@@ -33,7 +33,7 @@ export const projects = [
     period: "January 2025 – June 2026",
     summary:
       "A React study suite whose graphing engine runs a full computer algebra system in the browser: numeric plots appear at once, then SymPy (through Pyodide) upgrades them with asymptotes, critical points and curvature.",
-    scene: { shape: "surface", hint: "z = sin x · cos y, coloured by the sign of its Gaussian curvature: teal where it curves like a bowl, rose where it curves like a saddle. Drag to turn it; tap to send a ripple through it." },
+    scene: { shape: "surface", hint: "z = sin x · cos y, coloured by the sign of its Gaussian curvature: teal where it curves like a bowl, rose where it curves like a saddle. Gold dots are maxima, blue minima, pale saddle points. Tap to send a ripple through it." },
     spark: [
       "It started with tan(x). Most graphing tools draw it as one continuous line, with tall vertical strokes joining the branches where the function actually goes off to infinity. A student looking at that sees something that is not true.",
       "The tools that do get it right, such as Mathematica, MATLAB and Maple, need a licence, an installation or a server. The free browser tools are fast, but they have no symbolic asymptote detection, no curvature and no offline mode. I wanted the honesty of the first group with the reach of the second, and that set the constraints before I wrote any code: no server, interactive in under three seconds, usable offline after the first visit, and no visual artefacts that could mislead someone learning.",

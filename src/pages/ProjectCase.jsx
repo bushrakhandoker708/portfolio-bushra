@@ -51,7 +51,7 @@ export default function ProjectCase() {
         eyebrow={p.kind}
         title={p.title}
         accent="gold"
-        visual={p.scene && <Scene3D shape={p.scene.shape} hint={p.scene.hint} label={`Interactive 3D model for ${p.title}`} className="h-[20rem] sm:h-[24rem]" />}
+        visual={p.scene && <Scene3D shape={p.scene.shape} hint={p.scene.hint} label={`Interactive 3D model for ${p.title}`} className="h-[22rem] sm:h-[26rem] 2xl:h-[32rem]" />}
       >
         <p className="poetic text-2xl sm:text-3xl">{p.tagline}</p>
         <p className="lede mt-5">{p.summary}</p>
@@ -86,7 +86,7 @@ export default function ProjectCase() {
 
       <Section id="thinking" eyebrow="Brainstorm" title={team ? "How we thought it through" : "How I thought it through"} accent="teal">
         <p className="prose-body mb-8">
-          Every project here came down to a handful of forks in the road. For each one: the options on the table, the one taken, and
+          Every project here came down to a handful of decisions. For each one: the options on the table, the one taken, and
           why.
         </p>
         <RevealGroup as="ol" className="grid gap-6 lg:grid-cols-2">

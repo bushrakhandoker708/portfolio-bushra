@@ -116,9 +116,9 @@
 }
 
 @layer components {
-  .wrap { @apply mx-auto w-full max-w-page px-5 sm:px-8; }
+  .wrap { @apply mx-auto w-full max-w-page px-5 sm:px-8 lg:px-12 xl:px-16 2xl:px-20; }
   .eyebrow { @apply font-label text-xs font-semibold uppercase tracking-label; color: rgb(var(--accent)); }
-  .lede { @apply max-w-prose text-lg text-muted sm:text-xl; line-height: 1.65; }
+  .lede { @apply max-w-prose text-lg text-muted sm:text-xl 2xl:text-[1.35rem]; line-height: 1.65; }
   .poetic { @apply font-sub italic text-champagne; }
   .prose-body { @apply max-w-prose space-y-4 text-muted; }
   .prose-body strong { @apply font-medium text-ink; }
@@ -133,12 +133,24 @@
     color: transparent;
   }
 
-  /* Frosted glass panels floating over the universe. */
+  /* Panels: no boxed outline. A faint wash that fades downwards, opened by a
+     hairline in the section's accent that fades out to the right. */
   .card {
-    @apply rounded-2xl border border-white/10 bg-surface/[0.82] shadow-[0_20px_60px_-25px_rgba(0,0,0,0.8)];
+    @apply relative rounded-[1.25rem];
+    background:
+      linear-gradient(90deg, rgb(var(--accent) / 0.55), rgb(var(--accent) / 0.12) 45%, transparent 85%) top / 100% 1px no-repeat,
+      radial-gradient(120% 90% at 0% 0%, rgb(var(--accent) / 0.07), transparent 60%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.78), rgb(var(--surface) / 0.42));
   }
-  .card-hover { @apply transition duration-300 hover:-translate-y-1; }
-  .card-hover:hover { border-color: rgb(var(--accent) / 0.45); box-shadow: 0 25px 70px -20px rgb(var(--accent) / 0.28); }
+  .card-hover { @apply transition duration-500; }
+  .card-hover:hover {
+    background:
+      linear-gradient(90deg, rgb(var(--accent) / 0.9), rgb(var(--accent) / 0.25) 55%, transparent 90%) top / 100% 1px no-repeat,
+      radial-gradient(120% 90% at 0% 0%, rgb(var(--accent) / 0.12), transparent 60%),
+      linear-gradient(180deg, rgb(var(--surface) / 0.85), rgb(var(--surface) / 0.5));
+  }
+  /* Hairline-separated items for lists that should not look like boxes. */
+  .rule-top { border-top: 1px solid rgb(var(--rule) / 0.7); }
 
   .btn {
     @apply relative inline-flex min-h-[44px] items-center gap-2 rounded-full border px-5 py-2 font-label font-semibold tracking-wide no-underline transition duration-300;

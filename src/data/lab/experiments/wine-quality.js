@@ -22,7 +22,7 @@ const wine = {
   date: "2026-11-20",
   period: "Autumn 2026",
   repo: "wine-quality-classification",
-  scene: { shape: "margin", hint: "Drag to turn · tap to bend the boundary" },
+  scene: { shape: "margin", hint: "A linear SVM trained in your browser on 64 synthetic points (not the wine data): lavender is the decision plane, the outer planes are the margin, ringed points are support vectors, and the lines show each one’s distance to the boundary." },
   tagline: "Distance, margin or statistics: which way of drawing a line works best on the same data?",
   summary:
     "A controlled comparison of k-nearest neighbours, support vector machines and linear discriminant analysis on 3,961 white wines, each trained and tested under exactly the same split, scaling, tuning and metrics.",
@@ -61,7 +61,7 @@ const wine = {
     {
       value: "0.5802",
       label: "poor-quality recall, RBF SVM",
-      of: "the best of the three, and still the weakest number in the study",
+      of: "the best of the three; all three found poor wines far less reliably than good ones",
     },
     {
       value: "0.0058",

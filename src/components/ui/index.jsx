@@ -95,7 +95,7 @@ export function PageHeader({ eyebrow, title, children, visual, accent }) {
       <div className={`wrap relative pb-10 pt-14 sm:pb-14 sm:pt-20 ${visual ? "grid items-center gap-6 lg:grid-cols-[1.25fr_1fr]" : ""}`}>
         <div>
           {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
-          <h1 className="text-cosmic max-w-4xl pb-1 text-4xl font-semibold sm:text-6xl">{title}</h1>
+          <h1 className="text-cosmic max-w-4xl pb-1 text-4xl font-semibold sm:text-6xl 2xl:text-7xl">{title}</h1>
           {children && <div className="mt-6">{children}</div>}
         </div>
         {visual}
