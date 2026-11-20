@@ -57,3 +57,5 @@ legacy-assets/
 dist-ssr/
 test-results/
 playwright-report/
+
+docs/

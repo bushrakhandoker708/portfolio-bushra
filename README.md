@@ -29,7 +29,7 @@ npm run dev          # development server at http://localhost:5173
 | `npm test` | Unit tests |
 | `npm run test:e2e` | Playwright tests against the built site (run `npm run build` first) |
 | `npm run images` | Re-encode source images from `legacy-assets/` to WebP (Python + Pillow) |
-| `node scripts/screenshots.mjs` | Regenerate `docs/screenshots/after/` (needs `npm run preview` running) |
+| `node scripts/screenshots.mjs` | Regenerate screenshots into the local, untracked `docs/screenshots/after/` (needs `npm run preview` running) |
 
 ## Structure
 
@@ -43,19 +43,13 @@ src/
   entry-client.jsx / entry-server.jsx
 e2e/             Playwright tests
 scripts/         prerender, local server, screenshots, image optimisation
-docs/            audit, content inventory, verification list, design system, test report, release checklist
 ```
 
 Content is separate from layout. To change what the site says, edit `src/data/`. Research figures are pinned by tests, so update the data and the test together when new results arrive.
 
 ## Documentation
 
-- [Portfolio audit](docs/PORTFOLIO_AUDIT.md): the baseline and why things changed
-- [Content inventory](docs/CONTENT_INVENTORY.md): what was removed, kept and added
-- [Content verification](docs/CONTENT_VERIFICATION.md): facts awaiting confirmation
-- [Design system](docs/DESIGN_SYSTEM.md)
-- [Test report](docs/TEST_REPORT.md): results, before/after metrics
-- [Release checklist](docs/RELEASE_CHECKLIST.md): deployment, rollback, release notes
+Working documents (audit, content verification list, design system, test report, release checklist) are kept locally in `docs/`, which is listed in `.gitignore` and not published with the repository.
 
 ## Deployment
 
