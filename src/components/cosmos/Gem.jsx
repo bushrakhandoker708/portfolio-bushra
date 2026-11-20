@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { relevia } from "../../data/research";
@@ -36,20 +36,41 @@ export const COLOURS = {
 };
 const damp = THREE.MathUtils.damp;
 
-/** Drag to turn, with inertia; tilts gently towards the pointer when idle. */
+// Shared with every scene: whether the visitor has interacted yet. Idle motion
+// (spinning) only runs before that; reactions to a tap still play.
+const Interaction = createContext(null);
+const useIdle = () => {
+  const drag = useContext(Interaction);
+  const k = useRef(1);
+  return (dt) => {
+    k.current = drag?.current.touched ? damp(k.current, 0, 4, dt) : 1;
+    return k.current;
+  };
+};
+
+/**
+ * Turns slowly by itself until the visitor first touches, clicks or drags it
+ * (or moves one of its sliders). From then on it only moves when they drag it:
+ * the slow spin eases to a stop and the tilt towards the pointer is dropped.
+ */
 function Turntable({ drag, spin = 0.2, children }) {
   const outer = useRef(null);
   const inner = useRef(null);
+  const auto = useRef(1);
   useFrame((state, dt) => {
     const d = drag.current;
     if (!inner.current || !outer.current) return;
-    inner.current.rotation.y += spin * dt + d.vx;
+    auto.current = d.touched ? damp(auto.current, 0, 4, dt) : 1;
+    inner.current.rotation.y += spin * dt * auto.current + d.vx;
     d.rx = THREE.MathUtils.clamp(d.rx + d.vy, -0.9, 0.9);
     inner.current.rotation.x = d.rx;
-    d.vx *= Math.pow(0.04, dt);
-    d.vy *= Math.pow(0.04, dt);
-    outer.current.rotation.x = damp(outer.current.rotation.x, -state.pointer.y * 0.18, 3, dt);
-    outer.current.rotation.z = damp(outer.current.rotation.z, state.pointer.x * 0.1, 3, dt);
+    // Short inertia after a drag, so it settles quickly.
+    d.vx *= Math.pow(0.01, dt);
+    d.vy *= Math.pow(0.01, dt);
+    const px = d.touched ? 0 : state.pointer.x;
+    const py = d.touched ? 0 : state.pointer.y;
+    outer.current.rotation.x = damp(outer.current.rotation.x, -py * 0.18, 3, dt);
+    outer.current.rotation.z = damp(outer.current.rotation.z, px * 0.1, 3, dt);
   });
   return (
     <group ref={outer}>
@@ -129,7 +150,7 @@ function Surface() {
     const r = ripple.current;
     if (r.energy < 0.002) return;
     r.t += dt;
-    r.energy *= Math.pow(0.35, dt);
+    r.energy *= Math.pow(0.15, dt);
     const pos = geometry.attributes.position;
     const base = geometry.userData.base;
     for (let i = 0; i < pos.count; i += 1) {
@@ -383,14 +404,18 @@ function Crystal({ position, geo, colour, onBurst }) {
     }, 3200);
     return () => window.clearTimeout(id);
   }, [gone]);
+  const idle = useIdle();
+  const bob = useRef(0);
   useFrame((state, dt) => {
     const m = ref.current;
     if (!m) return;
+    const k = idle(dt);
     energy.current = damp(energy.current, 0, 1.6, dt);
     grow.current = damp(grow.current, 1, 3, dt);
-    m.rotation.x += dt * (0.25 + energy.current * 7);
-    m.rotation.y += dt * (0.35 + energy.current * 9);
-    m.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.8 + position[0]) * 0.15;
+    m.rotation.x += dt * (0.25 * k + energy.current * 7);
+    m.rotation.y += dt * (0.35 * k + energy.current * 9);
+    bob.current += dt * 0.8 * k;
+    m.position.y = position[1] + Math.sin(bob.current + position[0]) * 0.15;
     m.scale.setScalar(grow.current * (1 + energy.current * 0.3));
     if (mat.current) mat.current.emissiveIntensity = 0.2 + energy.current * 2;
   });
@@ -620,11 +645,12 @@ function ProjectGeometry({ index }) {
 function ProjectNode({ p, index, angle, focused, onFocus }) {
   const ref = useRef(null);
   const mat = useRef(null);
+  const idle = useIdle();
   useFrame((state, dt) => {
     const k = focused ? 1 : 0;
     ref.current.scale.setScalar(damp(ref.current.scale.x, focused ? 1.45 : 0.85, 4, dt));
-    ref.current.rotation.y += dt * (0.3 + k * 0.6);
-    if (index === 2) ref.current.scale.multiplyScalar(1 + Math.sin(state.clock.elapsedTime * (Math.PI / 4)) * 0.04);
+    ref.current.rotation.y += dt * (0.3 + k * 0.6) * idle(dt);
+    if (index === 2) ref.current.scale.multiplyScalar(1 + Math.sin(state.clock.elapsedTime * (Math.PI / 4)) * 0.04 * idle(0));
     mat.current.emissiveIntensity = damp(mat.current.emissiveIntensity, 0.15 + k * 0.5, 4, dt);
     mat.current.opacity = damp(mat.current.opacity, focused ? 0.95 : 0.6, 4, dt);
   });
@@ -1085,8 +1111,15 @@ const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0.08, forest
 
 export default function Gem({ shape = "crystals", running = true, onInfo, params }) {
   const Shape = SHAPES[shape] ?? Crystals;
-  const drag = useRef({ vx: 0, vy: 0, rx: 0, down: false, x: 0, y: 0 });
+  const drag = useRef({ vx: 0, vy: 0, rx: 0, down: false, x: 0, y: 0, touched: false });
+  // Moving a slider counts as interacting: hold still so the change can be seen.
+  const paramsKey = JSON.stringify(params ?? {});
+  const firstParams = useRef(paramsKey);
+  useEffect(() => {
+    if (paramsKey !== firstParams.current) drag.current.touched = true;
+  }, [paramsKey]);
   const onDown = (e) => {
+    drag.current.touched = true;
     drag.current.down = true;
     drag.current.x = e.clientX;
     drag.current.y = e.clientY;
@@ -1117,9 +1150,11 @@ export default function Gem({ shape = "crystals", running = true, onInfo, params
       <ambientLight intensity={0.6} />
       <directionalLight position={[4, 6, 5]} intensity={1.6} />
       <pointLight position={[-4, -2, 3]} intensity={18} color={COLOURS.lavender} />
-      <Turntable drag={drag} spin={SPIN[shape] ?? 0.2}>
-        <Shape onInfo={onInfo} params={params} />
-      </Turntable>
+      <Interaction.Provider value={drag}>
+        <Turntable drag={drag} spin={SPIN[shape] ?? 0.2}>
+          <Shape onInfo={onInfo} params={params} />
+        </Turntable>
+      </Interaction.Provider>
     </Canvas>
   );
 }
