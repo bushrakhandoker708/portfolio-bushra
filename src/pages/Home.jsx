@@ -3,6 +3,7 @@ import RepoActivity from "../components/RepoActivity";
 import { profile } from "../data/profile";
 import { relevia } from "../data/research";
 import { projects } from "../data/projects";
+import { experiments } from "../data/lab";
 import { artHighlights, ART_PORTFOLIO } from "../data/archive";
 import { Section, StatusBadge, TagList } from "../components/ui";
 import { Reveal, RevealGroup, RevealItem, Tilt } from "../components/motion";
@@ -72,6 +73,7 @@ export default function Home() {
   const s1 = relevia.safety.detectors.find((d) => d.id === "S1");
   const rel = relevia.pilot.dimensions[0];
   const relApp = projects.find((p) => p.slug === "relevia-app");
+  const lab = experiments[0];
 
   return (
     <>
@@ -123,6 +125,39 @@ export default function Home() {
               The Relevia app, where the safety-routing rules from this research now run.
             </figcaption>
           </figure>
+        </article>
+      </Section>
+
+      {/* Latest from the ML Lab */}
+      <Section id="ml-lab" eyebrow="From the ML Lab" title="Latest experiment" accent="sky">
+        <article className="card relative overflow-hidden p-6 sm:p-8">
+          <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
+          <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+            <div>
+              <p className="font-label text-xs font-semibold uppercase tracking-label text-accent">
+                Experiment {String(lab.number).padStart(2, "0")} · {lab.kind}
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold sm:text-3xl">{lab.title}</h3>
+              <p className="mt-4 text-muted">{lab.question}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to={`/ml-lab/${lab.slug}`} className="btn btn-primary">
+                  Read the experiment
+                </Link>
+                <Link to="/ml-lab" className="btn btn-quiet">
+                  Visit the ML Lab
+                </Link>
+              </div>
+            </div>
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {lab.headline.slice(0, 2).map((h) => (
+                <div key={h.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <dt className="text-sm text-faint">{h.label}</dt>
+                  <dd className="num mt-1 text-3xl text-cosmic">{h.value}</dd>
+                  <dd className="mt-1 text-sm text-muted">{h.of}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </article>
       </Section>
 

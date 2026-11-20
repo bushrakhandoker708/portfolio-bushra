@@ -131,14 +131,20 @@ function SiteFooter() {
 function useScrollManagement() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
-    if (hash) {
-      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
-      if (el) {
-        el.scrollIntoView();
-        return;
-      }
-    }
     window.scrollTo(0, 0);
+    if (!hash) return undefined;
+    // The target may be on a page that is still loading (pages are lazy), so
+    // keep looking for it for a moment before giving up.
+    const id = decodeURIComponent(hash.slice(1));
+    let frame;
+    const started = performance.now();
+    const seek = () => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView();
+      else if (performance.now() - started < 3000) frame = requestAnimationFrame(seek);
+    };
+    seek();
+    return () => cancelAnimationFrame(frame);
   }, [pathname, hash]);
 }
 

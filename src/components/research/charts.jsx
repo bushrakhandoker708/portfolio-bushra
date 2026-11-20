@@ -132,8 +132,8 @@ export function ProportionPlot({ rows, ariaLabel }) {
   );
 }
 
-/** 2×2 confusion matrix for a binary routing decision. */
-export function ConfusionMatrix({ label, tp, fn, fp, tn }) {
+/** 2×2 confusion matrix. Rows are the true class, columns the decision. */
+export function ConfusionMatrix({ label, tp, fn, fp, tn, rows = ["Urgent", "Not urgent"], cols = ["Flagged", "Not flagged"] }) {
   const cell = (v, kind) => (
     <td className={`num border border-rule px-3 py-2 text-center text-base ${kind === "ok" ? "text-teal" : v > 0 ? "text-danger" : "text-faint"}`}>{v}</td>
   );
@@ -144,24 +144,24 @@ export function ConfusionMatrix({ label, tp, fn, fp, tn }) {
         <tr>
           <td />
           <th scope="col" className="px-3 pb-1 text-xs font-normal text-faint">
-            Flagged
+            {cols[0]}
           </th>
           <th scope="col" className="px-3 pb-1 text-xs font-normal text-faint">
-            Not flagged
+            {cols[1]}
           </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <th scope="row" className="pr-3 text-right text-xs font-normal text-faint">
-            Urgent
+            {rows[0]}
           </th>
           {cell(tp, "ok")}
           {cell(fn, "bad")}
         </tr>
         <tr>
           <th scope="row" className="pr-3 text-right text-xs font-normal text-faint">
-            Not urgent
+            {rows[1]}
           </th>
           {cell(fp, "bad")}
           {cell(tn, "ok")}

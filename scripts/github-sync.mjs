@@ -30,6 +30,7 @@ const REPOS = [
   ["HEXALOCK", "HEXALOCK"],
   ["PhyCode", "PhyCode"],
   ["periodic_table_visualizer", "periodic_table_visualizer"],
+  ["wine-quality-classification", "wine-quality-classification"],
 ];
 
 const headers = {

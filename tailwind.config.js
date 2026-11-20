@@ -24,6 +24,7 @@ export default {
         gold: token("gold"),
         rose: token("rose"),
         accent: token("accent"),
+        "accent-2": token("accent-2"),
       },
       fontFamily: {
         // Each web font is followed by a metric-matched local fallback (see

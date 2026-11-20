@@ -65,6 +65,19 @@ Deployed on Vercel from `main`. `vercel.json` defines the build, clean URLs, red
 
 [bushrakhandoker2@gmail.com](mailto:bushrakhandoker2@gmail.com) · [github.com/bushrakhandoker708](https://github.com/bushrakhandoker708)
 
+## Adding an ML Lab experiment
+
+Each experiment is one file in `src/data/lab/experiments/`, collected by `src/data/lab/index.js` (`import.meta.glob`). Adding a file is enough: the ML Lab index, the `/ml-lab/<slug>` route, page metadata, prerendered HTML, sitemap, the home-page "latest experiment" teaser and the foundations map all pick it up.
+
+1. Copy `wine-quality.js` to `<slug>.js` and replace every field. Give it the next `number` and today's `date` (newest first).
+2. Copy numbers from executed notebook outputs only, as fractions (`0.7746`, not `"77.46%"`). Retell reasons the notebook gives; leave out what it does not say.
+3. `topics` must use names from `src/data/mlLab.js`; `src/tests/lab-data.test.js` checks this.
+4. Add the repository to `REPOS` in `scripts/github-sync.mjs` so its commit activity shows.
+5. If the work began as coursework, say so in `context` and link to it rather than copying it.
+6. Add `/ml-lab/<slug>` to `ROUTES` in `e2e/site.spec.js`, then run `npm test` and `npm run test:e2e`.
+
+The tag filter on the index appears once there are three experiments.
+
 ## GitHub activity sync
 
 `npm run build` starts with `scripts/github-sync.mjs` (also `npm run sync:github`). It fetches the last commit date and commit count for an explicit list of public repositories and writes them to `src/data/github.json`, which is committed. The site shows them as "95 commits · last commit 4 June 2026", with an "Active" marker when the last commit is within 30 days of the sync.

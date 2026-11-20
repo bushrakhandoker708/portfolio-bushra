@@ -9,6 +9,7 @@ import { redirects } from "./data/pages";
 const Research = lazy(() => import("./pages/Research"));
 const ReleviaCase = lazy(() => import("./pages/ReleviaCase"));
 const MlLab = lazy(() => import("./pages/MlLab"));
+const LabExperiment = lazy(() => import("./pages/LabExperiment"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectCase = lazy(() => import("./pages/ProjectCase"));
 const About = lazy(() => import("./pages/About"));
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="research" element={page(Research)} />
         <Route path="research/relevia" element={page(ReleviaCase)} />
         <Route path="ml-lab" element={page(MlLab)} />
+        <Route path="ml-lab/:slug" element={page(LabExperiment)} />
         <Route path="projects" element={page(Projects)} />
         <Route path="projects/:slug" element={page(ProjectCase)} />
         <Route path="about" element={page(About)} />

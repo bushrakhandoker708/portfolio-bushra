@@ -6,6 +6,7 @@ const ROUTES = [
   "/research",
   "/research/relevia",
   "/ml-lab",
+  "/ml-lab/wine-quality",
   "/projects",
   "/projects/studybuddy",
   "/projects/hexalock",

@@ -1,6 +1,7 @@
 import { pages, redirects, metaFor, NOT_FOUND } from "../data/pages";
 import { projects, otherProjects } from "../data/projects";
 import { mlLab } from "../data/mlLab";
+import { experiments } from "../data/lab";
 import { profile } from "../data/profile";
 import { education } from "../data/education";
 import { capabilities } from "../data/skills";
@@ -65,6 +66,14 @@ describe("evidence-based skill claims", () => {
     expect(text).not.toMatch(/\d+\s?%|mastery|expert/i);
   });
 
+  it("lab rules point at experiments and sections that exist", () => {
+    for (const m of mlLab.method) {
+      const e = experiments.find((x) => x.slug === m.where.slug);
+      expect(e, m.title).toBeDefined();
+      expect(["result", "question", "models", "protocol", "thinking", "results", "pushback", "cost", "open", "foundations"]).toContain(m.where.anchor);
+    }
+  });
+
   it("every project story links to evidence and states limitations", () => {
     for (const p of [...projects]) {
       expect(p.links.length, p.slug).toBeGreaterThan(0);
@@ -79,7 +88,7 @@ describe("GitHub sync data", async () => {
   const { activity, formatDay } = await import("../data/github");
 
   it("has activity for every project that names a repository, and only listed repositories", () => {
-    const named = [...projects, ...otherProjects].map((p) => p.repo).filter(Boolean);
+    const named = [...projects, ...otherProjects, ...experiments].map((p) => p.repo).filter(Boolean);
     for (const r of named) expect(activity(r), r).not.toBeNull();
     const allowed = new Set([...named, "relevia-research"]);
     for (const key of Object.keys(github.repos)) expect(allowed.has(key), key).toBe(true);

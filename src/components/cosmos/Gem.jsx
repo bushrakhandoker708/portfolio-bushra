@@ -14,6 +14,7 @@ import * as THREE from "three";
  *   crystals wireframe crystals; tap to energise, triple-tap to burst into bubbles
  *   orbits   an atom: physics, where it all started
  *   knot     ideas tied together; tap to re-tie it differently
+ *   margin   two classes and a decision boundary; tap to bend it from linear to curved
  */
 
 export const COLOURS = {
@@ -475,8 +476,102 @@ function Orbits() {
   );
 }
 
-const SHAPES = { surface: Surface, parcels: Parcels, orb: Orb, hex: Hex, crystals: Crystals, orbits: Orbits, knot: Knot };
-const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, orbits: 5.6, knot: 6 };
+/* ---------- margin: two classes and a boundary that bends ---------- */
+// A deterministic generator so the point cloud is the same on every visit.
+function seeded(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+const wave = (y, z, bend) => bend * 0.6 * Math.sin(y * 1.8) * Math.cos(z * 0.7);
+const MARGIN_POINTS = (() => {
+  const r = seeded(11);
+  const pts = [];
+  for (let i = 0; i < 120; i += 1) {
+    const y = (r() * 2 - 1) * 1.2;
+    const z = (r() * 2 - 1) * 0.95;
+    const good = r() < 0.6;
+    // Classes follow a curved boundary, with enough noise that they overlap.
+    const x = wave(y, z, 1) + (good ? 1 : -1) * (0.08 + r() * 0.95) + (r() - 0.5) * 0.45;
+    pts.push({ x, y, z, good });
+  }
+  return pts;
+})();
+const MARGIN = 0.22;
+
+function Margin() {
+  const target = useRef(0);
+  const bend = useRef(-1);
+  const points = useRef(null);
+  const geo = useMemo(() => {
+    const g = new THREE.PlaneGeometry(2.6, 2.1, 30, 22);
+    g.userData.uv = Float32Array.from(g.attributes.position.array);
+    return g;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const colours = useMemo(
+    () => ({ good: new THREE.Color(COLOURS.teal), poor: new THREE.Color(COLOURS.rose), wrong: new THREE.Color(COLOURS.gold) }),
+    [],
+  );
+
+  useFrame((_, dt) => {
+    const prev = bend.current;
+    const b = prev < 0 ? 0 : damp(prev, target.current, 2.6, dt);
+    if (prev >= 0 && Math.abs(b - prev) < 1e-4) return;
+    bend.current = b;
+    // Boundary: the plane's (u, v) becomes (y, z) and x follows the wave.
+    const pos = geo.attributes.position;
+    const uv = geo.userData.uv;
+    for (let i = 0; i < pos.count; i += 1) {
+      const u = uv[i * 3];
+      const v = uv[i * 3 + 1];
+      pos.setXYZ(i, wave(u, v, b), u, v);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    // Points: wrong side of the boundary turns gold; inside the margin grows (a support vector).
+    const inst = points.current;
+    MARGIN_POINTS.forEach((p, i) => {
+      const d = p.x - wave(p.y, p.z, b);
+      const right = (d > 0) === p.good;
+      const inside = Math.abs(d) < MARGIN;
+      dummy.position.set(p.x, p.y, p.z);
+      dummy.scale.setScalar(!right || inside ? 1.55 : 1);
+      dummy.updateMatrix();
+      inst.setMatrixAt(i, dummy.matrix);
+      inst.setColorAt(i, right ? (p.good ? colours.good : colours.poor) : colours.wrong);
+    });
+    inst.instanceMatrix.needsUpdate = true;
+    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <group
+      rotation={[0.2, -1.1, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        target.current = target.current > 0.5 ? 0 : 1;
+      }}
+    >
+      <mesh geometry={geo}>
+        <meshStandardMaterial color={COLOURS.lavender} emissive={COLOURS.mauve} emissiveIntensity={0.25} side={THREE.DoubleSide} transparent opacity={0.3} depthWrite={false} roughness={0.4} />
+      </mesh>
+      <mesh geometry={geo}>
+        <meshBasicMaterial wireframe color={COLOURS.champagne} transparent opacity={0.16} />
+      </mesh>
+      <instancedMesh ref={points} args={[undefined, undefined, MARGIN_POINTS.length]}>
+        <sphereGeometry args={[0.055, 12, 10]} />
+        <meshBasicMaterial color="#ffffff" />
+      </instancedMesh>
+    </group>
+  );
+}
+
+const SHAPES = { surface: Surface, parcels: Parcels, orb: Orb, hex: Hex, crystals: Crystals, orbits: Orbits, knot: Knot, margin: Margin };
+const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, orbits: 5.6, knot: 6, margin: 5.4 };
 
 export default function Gem({ shape = "crystals", running = true }) {
   const Shape = SHAPES[shape] ?? Crystals;

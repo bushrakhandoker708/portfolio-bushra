@@ -49,6 +49,13 @@
       "lastCommit": "2025-03-16",
       "commits": 24,
       "archived": false
+    },
+    "wine-quality-classification": {
+      "url": "https://github.com/bushrakhandoker708/wine-quality-classification",
+      "branch": "main",
+      "lastCommit": "2026-11-20",
+      "commits": 2,
+      "archived": false
     }
   }
 }

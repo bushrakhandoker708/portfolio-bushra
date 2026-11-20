@@ -17,8 +17,33 @@ export const mlLab = {
   readme: repoFile(V, "README.md"),
   intro:
     "My rule for this vault is that I don't really know something until I can explain it, derive it or build it. It holds my working notes as I rebuild the mathematics and classical machine learning underneath the models I use in research.",
+  labIntro:
+    "The lab has two halves. Experiments are where I build: real data, one protocol for every model, and every number traced back to a notebook output. The notes are where I explain and derive what those models stand on.",
   evidenceNote:
-    "This page shows what the repository contains today. The notes include worked derivations. From-scratch implementations, notebooks and tests are not yet in the repository, so no topic here is labelled as implemented.",
+    "The notes include worked derivations, but the vault itself holds no implementations, notebooks or tests yet, so no topic is labelled as implemented. Experiments live in their own repositories and are linked from their pages.",
+  // Working rules, each one visible in a published experiment (the anchor says where).
+  method: [
+    {
+      title: "A baseline before a winner",
+      text: "Every comparison includes a model that learns nothing. If a metric cannot tell that model from the real ones, the metric is the problem.",
+      where: { slug: "wine-quality", anchor: "results", label: "The always-good baseline" },
+    },
+    {
+      title: "Nothing learns from the test set",
+      text: "Scaling sits inside the pipeline, tuning happens on cross-validation folds, and the test set is used once. A fix spotted on test results is shown as an illustration, not applied.",
+      where: { slug: "wine-quality", anchor: "thinking", label: "Where scaling happens" },
+    },
+    {
+      title: "Score every class",
+      text: "A headline metric goes next to balanced accuracy, minority-class recall and the confusion matrix, so a model cannot look good by ignoring the smaller class.",
+      where: { slug: "wine-quality", anchor: "pushback", label: "The baseline that scored 0.79" },
+    },
+    {
+      title: "Say what one split cannot show",
+      text: "Differences are compared with the spread between folds, and every experiment ends with what it does not establish.",
+      where: { slug: "wine-quality", anchor: "open", label: "Limitations" },
+    },
+  ],
   groups: [
     {
       title: "Mathematics",

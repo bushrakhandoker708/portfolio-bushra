@@ -2,6 +2,7 @@ import { SITE_URL } from "./site";
 import { profile } from "./profile";
 import { relevia } from "./research";
 import { projects } from "./projects";
+import { experiments } from "./lab";
 
 const person = {
   "@type": "Person",
@@ -44,9 +45,30 @@ export const pages = {
     },
   },
   "/ml-lab": {
-    title: "ML Lab: machine learning foundations · Bushra Khandoker",
-    description: "Study notes and derivations in linear algebra, calculus, probability, numerical Python and classical machine learning, with honest status labels.",
+    title: "ML Lab: experiments and foundations · Bushra Khandoker",
+    description:
+      "Machine learning experiments on real data, each with its protocol, decisions, results and limitations, built on study notes in linear algebra, calculus, probability and classical machine learning.",
   },
+  ...Object.fromEntries(
+    experiments.map((e) => [
+      `/ml-lab/${e.slug}`,
+      {
+        title: `${e.short}: ${e.kind.toLowerCase()} · ML Lab · Bushra Khandoker`,
+        description: e.summary,
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          name: e.title,
+          abstract: e.question,
+          about: e.tags,
+          dateModified: e.date,
+          author: { "@type": "Person", name: profile.name, url: SITE_URL },
+          isBasedOn: e.links[0]?.href,
+          url: `${SITE_URL}/ml-lab/${e.slug}`,
+        },
+      },
+    ]),
+  ),
   "/projects": {
     title: "Projects · Bushra Khandoker",
     description: "Project stories told from the question up: StudyBuddy, Bushal, the Relevia app and HEXALOCK, with the forks, the bugs and what is still open.",
