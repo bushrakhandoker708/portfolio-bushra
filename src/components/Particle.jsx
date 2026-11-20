@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } fr
 import { Canvas } from '@react-three/fiber';
 import { Physics, useSphere, usePlane } from '@react-three/cannon';
 import { OrbitControls, Environment, PerspectiveCamera, Html, useProgress } from '@react-three/drei';
-import { EffectComposer, Bloom, SSAO, DepthOfField } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import spaceBackground from '../assets/background.jpg';
 
@@ -423,7 +423,6 @@ const ParticleScene = () => {
         <OrbitControls enableZoom={false} enableRotate={true} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} />
         <EffectComposer>
           <Bloom intensity={quality === 'low' ? 0.5 : 1.0} radius={quality === 'low' ? 0.1 : 0.2} />
-          <SSAO radius={quality === 'low' ? 0.1 : 0.2} intensity={quality === 'low' ? 6 : 12} />
           <DepthOfField focusDistance={0.02} focalLength={0.1} bokehScale={quality === 'low' ? 1.5 : 2.5} />
         </EffectComposer>
       </Suspense>

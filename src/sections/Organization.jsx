@@ -11,8 +11,6 @@ import EcoFriendly from "../assets/EmpowerEd/ecofriendly.jpg";
 import Health from "../assets/EmpowerEd/mental health.png";
 import logo from "../assets/EmpowerEd/logo.png";
 import color from "../assets/animation/arrow.json";
-import { loadFull } from "tsparticles";
-import { Particles } from "react-tsparticles";
 import Typewriter from "typewriter-effect";
 import { FaArrowUp } from "react-icons/fa";
 
@@ -118,9 +116,6 @@ export default function OrganizationGallery() {
     };
   }, [updateMobile]);
 
-  const particlesInit = async (engine) => {
-    await loadFull(engine);
-  };
 
   const sliderSettings = {
     dots: true,
@@ -149,45 +144,6 @@ export default function OrganizationGallery() {
   return (
     <article id="organization" className="w-full bg-lemon_chiffon relative overflow-hidden">
       <header className="relative h-screen flex flex-col justify-center items-center bg-gradient-to-r from-electric_blue to-aquamarine px-4 sm:px-6 lg:px-8">
-        <Particles
-          id="tsparticles"
-          init={particlesInit}
-          options={{
-            background: {
-              color: { value: "transparent" },
-            },
-            fpsLimit: 120,
-            interactivity: {
-              events: {
-                onClick: { enable: true, mode: "push" },
-                onHover: { enable: true, mode: "repulse" },
-                resize: true,
-              },
-              modes: {
-                push: { quantity: 4 },
-                repulse: { distance: 200, duration: 0.4 },
-              },
-            },
-            particles: {
-              color: { value: "#ffffff" },
-              links: { color: "#ffffff", distance: 150, enable: true, opacity: 0.5, width: 1 },
-              collisions: { enable: true },
-              move: {
-                direction: "none",
-                enable: true,
-                outModes: { default: "bounce" },
-                random: false,
-                speed: 2,
-                straight: false,
-              },
-              number: { density: { enable: true, area: 800 }, value: isMobile ? 40 : 80 },
-              opacity: { value: 0.75 },
-              shape: { type: "circle" },
-              size: { value: { min: 1, max: 5 } },
-            },
-            detectRetina: true,
-          }}
-        />
         <div className="relative z-10 w-full max-w-screen-xl text-center">
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -277,31 +233,6 @@ export default function OrganizationGallery() {
       </header>
 
       <section className="img-group-container relative py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-lemon_chiffon/5 to-champagne_pink/10 overflow-hidden">
-        <Particles
-          id="gallery-particles"
-          init={particlesInit}
-          options={{
-            background: { color: { value: "transparent" } },
-            fpsLimit: 60,
-            particles: {
-              color: { value: "#90dbf4" },
-              links: { enable: false },
-              move: {
-                direction: "top",
-                enable: true,
-                outModes: { default: "out" },
-                speed: 1.5,
-                random: true,
-              },
-              number: { density: { enable: true, area: 1200 }, value: isMobile ? 20 : 40 },
-              opacity: { value: { min: 0.3, max: 0.6 } },
-              shape: { type: "circle" },
-              size: { value: { min: 1, max: 3 } },
-            },
-            detectRetina: true,
-          }}
-          className="absolute inset-0 z-0"
-        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.h2
             className="text-4xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-deep_indigo text-center mb-12"

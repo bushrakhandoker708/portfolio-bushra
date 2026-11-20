@@ -1,15 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet"; // Helmet for SEO metadata
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaWhatsapp,
-  FaPhoneAlt,
-  FaGithub,
-  FaMedium,
-} from "react-icons/fa";
+import { FaGithub, FaMedium, FaEnvelope, FaFileAlt } from "react-icons/fa";
+import { profile } from "../content/profile";
 
 /**
  * Footer Component
@@ -23,28 +16,6 @@ import {
 export default function Footer() {
   return (
     <>
-      {/* Helmet for SEO meta tags */}
-      <Helmet>
-        <title>Bushra Khandoker | Innovator & Thinker</title>
-        <meta
-          name="description"
-          content="Bushra Khandoker - A dreamer, innovator, and renaissance thinker passionately exploring the world. Connect via social links, GitHub, Medium, and more."
-        />
-        <meta
-          name="keywords"
-          content="Bushra Khandoker, innovator, dreamer, thinker, GitHub, Medium, Instagram, Facebook, WhatsApp, portfolio"
-        />
-        <meta name="author" content="Bushra Khandoker" />
-        <meta property="og:title" content="Bushra Khandoker | Innovator & Thinker" />
-        <meta
-          property="og:description"
-          content="A dreamer, trailblazing innovator, and renaissance thinker. Connect with Bushra across social platforms."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://your-portfolio-url.com/" />
-        <meta property="og:image" content="https://your-portfolio-url.com/preview.jpg" />
-        <link rel="canonical" href="https://your-portfolio-url.com/" />
-      </Helmet>
 
       <footer
         className="bg-gradient-to-b from-gray-900 to-gray-800 text-gray-200 relative overflow-hidden"
@@ -67,8 +38,7 @@ export default function Footer() {
               Bushra Khandoker
             </h2>
             <p className="font-description text-xl md:text-2xl mt-2 max-w-md leading-relaxed">
-              A dreamer, a trailblazing innovator, and a renaissance thinker,
-              passionately committed to exploring the world.
+              {profile.tagline}
             </p>
           </motion.div>
 
@@ -82,34 +52,7 @@ export default function Footer() {
             aria-label="Social Media Links"
           >
             <a
-              href="https://www.facebook.com/bushra.708"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
-              aria-label="Visit Facebook profile"
-            >
-              <FaFacebookF size={26} />
-            </a>
-            <a
-              href="https://www.instagram.com/bushra._.708"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
-              aria-label="Visit Instagram profile"
-            >
-              <FaInstagram size={26} />
-            </a>
-            <a
-              href="https://wa.me/8801334798878"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
-              aria-label="Chat on WhatsApp"
-            >
-              <FaWhatsapp size={26} />
-            </a>
-            <a
-              href="https://github.com/Bushraabir/"
+              href={profile.links.github}
               target="_blank"
               rel="noopener noreferrer"
               className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
@@ -118,20 +61,29 @@ export default function Footer() {
               <FaGithub size={26} />
             </a>
             <a
-              href="https://medium.com/@bb3708627/"
+              href={profile.links.cv}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
+              aria-label="Download CV"
+            >
+              <FaFileAlt size={26} />
+            </a>
+            <a
+              href={`mailto:${profile.email}`}
+              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
+              aria-label="Send email"
+            >
+              <FaEnvelope size={26} />
+            </a>
+            <a
+              href={profile.links.medium}
               target="_blank"
               rel="noopener noreferrer"
               className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
               aria-label="Read articles on Medium"
             >
               <FaMedium size={26} />
-            </a>
-            <a
-              href="tel:+8801334798878"
-              className="transform transition-all duration-300 hover:scale-110 hover:text-teal-300"
-              aria-label="Call via phone"
-            >
-              <FaPhoneAlt size={26} />
             </a>
           </motion.nav>
         </div>
@@ -149,7 +101,7 @@ export default function Footer() {
           </motion.div>
           {/* Address for SEO */}
           <address className="not-italic mt-2 md:mt-0 text-sm text-gray-400 text-center md:text-right">
-            Dhaka, Bangladesh | <a href="bushrakhandoker2@gmail.com" className="hover:underline">bushrakhandoker2@gmail.com</a>
+            {profile.location} | <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
           </address>
         </div>
       </footer>

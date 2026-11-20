@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
 import profileImage from "../assets/Bushra1.png";
+import { profile } from "../content/profile";
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -134,7 +135,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
           >
-            Reality is programmable beauty.
+            {profile.status}
           </motion.p>
 
           <motion.h1
@@ -144,7 +145,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
           >
-            Bushra Khandoker ✨
+            {profile.name}
           </motion.h1>
 
           <motion.h2
@@ -154,7 +155,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
           >
-            Every algorithm starts with a question.
+            {profile.headline}
           </motion.h2>
 
           <motion.p
@@ -164,9 +165,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2.2, delay: 0.6, ease: "easeOut" }}
           >
-            I explore the intersection of computation, art, and physics, 
-            building solutions that transform cosmic mysteries 
-            into tangible, beautiful experiences.
+            {profile.researchInterests}
           </motion.p>
         </article>
 
@@ -224,6 +223,34 @@ const Hero = () => {
 
       </nav>
 
+      {/* ACADEMIC LINKS */}
+      <ul
+        className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-5 font-description text-base sm:text-lg text-lemon_chiffon"
+        style={{ pointerEvents: "auto" }}
+        aria-label="Academic links"
+      >
+        {[
+          ["CV", profile.links.cv],
+          ["Email", `mailto:${profile.email}`],
+          ["GitHub", profile.links.github],
+          ["Google Scholar", profile.links.scholar],
+          ["LinkedIn", profile.links.linkedin],
+        ]
+          .filter(([, href]) => href)
+          .map(([label, href]) => (
+            <li key={label}>
+              <a
+                href={href}
+                target={href.startsWith("mailto:") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+                className="text-lemon_chiffon font-semibold underline decoration-aquamarine/60 underline-offset-4 hover:text-aquamarine transition-colors"
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+      </ul>
+
       {/* DESCRIPTION SECTION */}
       <motion.section
         className="mt-6 px-4 text-center text-lemon_chiffon pointer-events-none"
@@ -232,9 +259,7 @@ const Hero = () => {
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
         <p className={descriptionClass}>
-          ✨ Our universe is similar to a bubble, and it is expanding like one as
-          well. Want to see how a bubble is created and expands? <br />
-          Simply tap on the screen, and you will see 🎮
+          Tap anywhere to drop a bubble into the physics simulation.
         </p>
       </motion.section>
     </main>

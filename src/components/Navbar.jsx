@@ -261,9 +261,9 @@ const NavbarComponent = ({ page }) => {
       { to: "/my-story", name: "My Story", icon: "📖", description: "Learn about my journey" }
     ],
     myWorks: [
-      { id: "websites", name: "STEM Projects", icon: "🔬", description: "Scientific endeavors" },
+      { id: "websites", name: "Projects", icon: "🔬", description: "What I have built" },
       { id: "artworks", name: "Artworks", icon: "🎨", description: "Creative expressions" },
-      { id: "research", name: "Research", icon: "📚", description: "Academic work" },
+      { id: "research", name: "Science Writing", icon: "📚", description: "Physics essays" },
       { id: "organization", name: "Volunteering", icon: "🤝", description: "Community service" },
       { to: "/", name: "← Back to Home", icon: "🏠", description: "Return home" },
       { to: "/my-story", name: "My Story", icon: "📖", description: "Personal journey" }
@@ -271,7 +271,7 @@ const NavbarComponent = ({ page }) => {
     myStory: [
       { id: "about", name: "About Me", icon: "👋", description: "Get to know me" },
       { id: "achievements", name: "Achievements", icon: "🏆", description: "My accomplishments" },
-      { id: "testimonials", name: "Appreciations", icon: "💙", description: "Kind words" },
+      { id: "Skill", name: "Skills", icon: "🧠", description: "Languages and tools" },
       { to: "/", name: "← Back to Home", icon: "🏠", description: "Return home" },
       { to: "/my-works", name: "My Works", icon: "🚀", description: "View projects" }
     ]

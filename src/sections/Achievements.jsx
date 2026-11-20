@@ -5,137 +5,60 @@ import "react-vertical-timeline-component/style.min.css";
 import { FaCheck, FaChevronDown, FaTrophy, FaAward, FaStar, FaAngleDoubleDown, FaAngleDoubleUp } from "react-icons/fa";
 
 const achievements = [
+  // TODO: add a "University" entry first: CGPA, class rank, scholarships, RA/TA roles, ML competitions.
   {
-    title: "Academic Excellence & Scholarships",
-    description: "Consistently achieved top ranks, scholarships, and accolades throughout my education.",
+    title: "Academic Record",
+    description: "National-level academic results before university.",
     icon: FaTrophy,
     color: "from-aquamarine to-jordy_blue",
     points: [
-      "31st in the Bangladesh University of Engineering and Technology (BUET) Architecture admission test (2023)",
-      "Performace Based Grants for Secondary Institutions (PBGSI) Scheme (2023)- Higher Secondary Completion Award(HSCA) in Science Group Based on the results of the Board of Intermediate and Secondary Education,Jashore",
-      "GPA 5.00 in Higher Secondary Certificate (HSC) (2023)",
-      "General Grade Scholarship in HSC (2023)",
-      "GPA 5.00 in Secondary School Certificate (SSC) (2021)",
-      "Talent Pool Scholarship in SSC (2021)",
-      "GPA 5.00 in Junior School Certificate (JSC) (2018)",
-      "Talent Pool Scholarship in JSC (2018)",
-      "GPA 5.00 in Primary Education Completion Examination (PECE) (2015)"
+      "Ranked 31st in the BUET admission test (Architecture), 2023",
+      "HSC: GPA 5.00 (Science), General Grade Scholarship and Higher Secondary Completion Award (PBGSI), 2023",
+      "SSC: GPA 5.00, Talent Pool Scholarship, 2021"
     ]
   },
   {
-    title: "Leadership & Team Management",
-    description: "Led teams with discipline, integrity, and vision, promoting excellence in academics and extracurriculars.",
-    icon: FaAward,
-    color: "from-pink_lavender to-aquamarine",
-    points: [
-      "Junior Prefect — Appointed as the Junior Prefect of Bir Protik Dr. Captain Sitara Begum House (2021)",
-      "House Prefect — Led 92 cadets as the House Prefect of Bir Protik Dr. Captain Sitara Begum House (2022-2023)",
-      "Class Prefect - Nominated as the Class Prefect to represent the class for consistently 5 years (2017-2021)",
-      "Under my leadership, the house won the Overall Championship in the 2023 Annual Athletics based on discipline, academics, and teamwork",
-      "Best Cadet Award (2017) — Recognized for outstanding discipline, academics, and co-curricular excellence"
-    ]
-  },
-  {
-    title: "STEM Competitions & Olympiads",
-    description: "Excelled in national Olympiads and science fairs, pushing my intellectual boundaries.",
+    title: "Mathematics & Physics Olympiads",
+    description: "Competitive problem solving in mathematics and physics.",
     icon: FaStar,
     color: "from-jordy_blue to-electric_blue",
     points: [
-      "International Youth Math Challenge (IYMC) — Qualification Round Winner (2024)",
-      "Bangladesh Math Olympiad — Regional Winner, National Round Participant (2020)",
-      "Bangladesh Physics Olympiad (BdPhO) — 1st place in the regional round (Jessore), National Round Participant (2023)",
-      "Interhouse Astro Olympiad — 3rd place (2022)",
-      "Developed Gusto, a specialized virtual assistant designed for various activities at Bir Protik Dr. Captain Sitara Begum House (CSBH), featuring advanced face recognition and data analysis capabilities. Recognized as the Best Project at the Interhouse Science Fair Competition, MCSK (2022).",
-      "Interhouse Astrophysics Olympiad — 1st place in the junior group (2019)",
-      "Biggan Uthsob (National) — Regional Winner, National Round Participant with a project on Biodegradable Polythene (2019)"
+      "Bangladesh Physics Olympiad: 1st place, Jessore regional round; National Round participant (2023)",
+      "Bangladesh Math Olympiad: Regional winner; National Round participant (2020)",
+      "International Youth Math Challenge: Qualification Round winner (2024)"
     ]
   },
   {
-    title: "Writing & Communication Excellence",
-    description: "Earned multiple awards in essay competitions, showcasing strong analytical and expressive skills.",
+    title: "Early Research & Projects",
+    description: "First hands-on work applying computing and science to real problems.",
     icon: FaAward,
-    color: "from-pink_lavender to-mauve",
-    points: [
-      "1st place — MCSK Essay Writing Competition (2017)",
-      "2nd place — Interhouse Essay Writing Competition (2020)",
-      "1st place — International Mother Language Day Essay Competition (2019)",
-      "1st place — Essay Writing Competition on Independence Day of Bangladesh (2022)",
-      "Best Writing Award — InterHouse Wall Magazine Competition (2017)"
-    ]
-  },
-  {
-    title: "Creative & Artistic Achievements",
-    description: "My artistic skills, in both traditional and digital media, have been recognized in national and institutional competitions.",
-    icon: FaStar,
-    color: "from-aquamarine to-pink_lavender",
-    points: [
-      "3rd place — Bangla Vision Painting Competition (2013)",
-      "1st place — Bissho Shishu o Jubo Theater Dibosh Painting Competition (2019, 2022)",
-      "1st place — National Mourning Day Painting Competition (2019)",
-      "3rd place — 7th March Historical Speech Painting Competition (2022)",
-      "Best Artist — Interhouse Painting Competition (2018)"
-    ]
-  },
-  {
-    title: "Innovation & Scientific Research",
-    description: "Led projects combining science and technology to provide real-world solutions.",
-    icon: FaTrophy,
     color: "from-pink_lavender to-electric_blue",
     points: [
-      "Team Leader — InterHouse Science Fair (Senior Group), Developed 'Gusto,' a virtual assistant with Face Recognition, awarded Best Project (2022)",
-      "Team Leader - Easy Water Purification and Supply, awarded Best Project (2019)",
-      "Biggan Uthsob (National) — Biodegradable Polythene - Regional Winner, National Round Participant (2019)"
+      "Team lead, Gusto: a virtual assistant with face recognition and data analysis. Best Project, Interhouse Science Fair (2022)",
+      "Biggan Uthsob (national science festival): Regional winner with a biodegradable polythene project; National Round participant (2019)"
     ]
   },
   {
-    title: "Public Speaking & Debate",
-    description: "Improved communication skills through speaking competitions.",
-    icon: FaAward,
-    color: "from-lemon_chiffon to-tea_rose",
-    points: [
-      "Soujonno Pouroshkar — 7th March Extempore Speech Competition (2022)",
-      "Runners-up — Debate Competition (2016)"
-    ]
-  },
-  {
-    title: "Non-Profit & Community Engagement",
-    description: "Engaged in a diverse range of non-profit and community initiatives, including founding and holding leadership roles at EmpowerEd, a non-profit dedicated to enhancing educational opportunities, as well as providing design and digital expertise to support local businesses and creative platforms.",
+    title: "Leadership & Service",
+    description: "Building teams and communities.",
     icon: FaStar,
     color: "from-jordy_blue to-lemon_chiffon",
     points: [
-      "Founded EmpowerEd, a non-profit focused on educational opportunities.",
-      "Served as Vice President, shaping strategy and leadership at EmpowerEd.",
-      "STEM Innovation Advisor at EmpowerEd.",
-      "Led fundraising to support EmpowerEd's mission-driven initiatives.",
-      "Feather Clothing Brand: Assisted in transitioning a physical clothing brand to online during lockdown by creating logos and digital marketing content.",
-      "Eyes on Talent: Served as Vice Graphic Designer for an online talent platform, designing posters and cover photos to inspire creativity during the pandemic."
+      "Founder and Vice President, EmpowerEd: non-profit expanding educational access; led strategy and fundraising",
+      "House Prefect: led 92 cadets; house won the 2023 Overall Athletics Championship",
+      "Tutored secondary students in physics and mathematics"
     ]
   },
   {
-    title: "Mentorship & Teaching Experience",
-    description: "Mentored students, helped them academically.",
-    icon: FaAward,
-    color: "from-aquamarine to-tea_rose",
-    points: [
-      "Provided tuition to 3 students for 2 months, improving their Physics and Mathematics.",
-      "Created interactive PDFs and notes.",
-      "Implemented adaptive teaching techniques to enhance student learning"
-    ]
-  },
-  {
-    title: "Technical Expertise & Digital Skills",
-    description: "Strong technical foundation in programming, design, and 3D visualization to create solutions.",
+    title: "Technical Skills",
+    description: "Languages and tools I work with.",
     icon: FaTrophy,
     color: "from-tea_rose to-lemon_chiffon",
     points: [
-      "Programming languages : C, C++, Python",
-      "Passionate about Machine Learning and Artificial Intelligence with Python",
-      "Frontend web development : HTML, CSS, JavaScript, React, Vite, Three.js, Tailwind CSS",
-      "Backend experience with Firebase",
-      "Web animation using GSAP and Framer Motion",
-      "3D physics simulations using blender",
-      "3D modeling and rendering using Blender",
-      "Graphic Design and Digital Art : Adobe Illustrator, Photoshop, Krita "
+      "Programming: Python, C, C++",
+      "Machine learning with Python", // TODO: list the libraries you actually use (PyTorch, scikit-learn, ...)
+      "Web and visualisation: JavaScript, React, Three.js, Firebase",
+      "3D modelling and physics simulation in Blender"
     ]
   }
 ];

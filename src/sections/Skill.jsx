@@ -7,101 +7,47 @@ import Splitting from "splitting";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tilt } from "react-tilt";
 import {
-  FaPython, FaReact, FaBlender, FaGuitar, FaSwimmer, FaCalculator,
-  FaLightbulb, FaUsers, FaStar, FaChalkboardTeacher, FaProjectDiagram,
-  FaPaintBrush, FaBrain, FaPen, FaChartBar,
+  FaPython, FaReact, FaBlender, FaGuitar, FaCalculator, FaUsers, FaBrain,
 } from "react-icons/fa";
 import {
-  SiCplusplus, SiAdobeillustrator, SiThreedotjs, SiHtml5, SiCss3,
-  SiVite, SiGreensock, SiFramer, SiKrita, SiGnu, SiFreecad, SiOpenscad,
+  SiCplusplus, SiAdobeillustrator, SiThreedotjs, SiVite, SiGnu, SiFreecad,
   SiJavascript,
 } from "react-icons/si";
-import { DiPhotoshop } from "react-icons/di";
-import {
-  GiSkateboard, GiPaintBrush as GiPaintBrushIcon, GiCrafting,
-  GiAtomicSlashes, GiPencil, GiRock,
-} from "react-icons/gi";
+import { GiPaintBrush as GiPaintBrushIcon, GiAtomicSlashes } from "react-icons/gi";
 
 /* ----------  data  ------------------------------------------------ */
 const skillsData = [
-  {
-    category: "STEM",
-    items: [
-      { name: "Physics", icon: <GiAtomicSlashes /> },
-      { name: "Mathematics", icon: <FaCalculator /> },
-    ],
-  },
+  // TODO: add a "Machine Learning" category with only the libraries you actually use
+  // (e.g. PyTorch, scikit-learn, NumPy, pandas, Hugging Face).
   {
     category: "Programming",
     items: [
+      { name: "Python", icon: <FaPython /> },
       { name: "C", icon: <SiCplusplus /> },
       { name: "C++", icon: <SiCplusplus /> },
-      { name: "Python", icon: <FaPython /> },
     ],
   },
   {
-    category: "Web Development",
+    category: "Machine Learning",
     items: [
+      { name: "Machine Learning", icon: <FaBrain /> },
+    ],
+  },
+  {
+    category: "Mathematics",
+    items: [
+      { name: "Mathematics", icon: <FaCalculator /> },
+      { name: "Physics", icon: <GiAtomicSlashes /> },
+      { name: "GNU Octave", icon: <SiGnu /> },
+    ],
+  },
+  {
+    category: "Web & Visualisation",
+    items: [
+      { name: "JavaScript", icon: <SiJavascript /> },
       { name: "React.js", icon: <FaReact /> },
       { name: "Three.js", icon: <SiThreedotjs /> },
-      { name: "JavaScript", icon: <SiJavascript /> },
-      { name: "HTML", icon: <SiHtml5 /> },
-      { name: "CSS", icon: <SiCss3 /> },
-      { name: "GSAP", icon: <SiGreensock /> },
-      { name: "Framer Motion", icon: <SiFramer /> },
-      { name: "Vite", icon: <SiVite /> },
-    ],
-  },
-  {
-    category: "Tools",
-    items: [
-      { name: "Microsoft Excel", icon: <FaChartBar /> },
-      { name: "PowerPoint", icon: <FaProjectDiagram /> },
-      { name: "Microsoft Word", icon: <FaPen /> },
-    ],
-  },
-  {
-    category: "Engineering Tools",
-    items: [
-      { name: "GNU Octave", icon: <SiGnu /> },
-      { name: "FreeCAD", icon: <SiFreecad /> },
-      { name: "OpenSCAD", icon: <SiOpenscad /> },
-    ],
-  },
-  {
-    category: "3D Modeling & Design",
-    items: [
       { name: "Blender", icon: <FaBlender /> },
-      { name: "Illustrator", icon: <SiAdobeillustrator /> },
-      { name: "Photoshop", icon: <DiPhotoshop /> },
-      { name: "Krita", icon: <SiKrita /> },
-    ],
-  },
-  {
-    category: "Art & Craft",
-    items: [
-      { name: "Acrylic Painting", icon: <FaPaintBrush /> },
-      { name: "Sketching", icon: <GiPencil /> },
-      { name: "Sculpting", icon: <GiRock /> },
-      { name: "Crafting", icon: <GiCrafting /> },
-    ],
-  },
-  {
-    category: "Other Interests",
-    items: [
-      { name: "Guitar", icon: <FaGuitar /> },
-      { name: "Skating", icon: <GiSkateboard /> },
-      { name: "Swimming", icon: <FaSwimmer /> },
-    ],
-  },
-  {
-    category: "Soft Skills",
-    items: [
-      { name: "Problem Solving", icon: <FaLightbulb /> },
-      { name: "Teamwork", icon: <FaUsers /> },
-      { name: "Leadership", icon: <FaStar /> },
-      { name: "Team Management", icon: <FaUsers /> },
-      { name: "Mentoring", icon: <FaChalkboardTeacher /> },
     ],
   },
 ];

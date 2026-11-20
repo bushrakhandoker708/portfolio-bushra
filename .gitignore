@@ -45,3 +45,9 @@ next-env.d.ts
 
 # Environment files
 .env*
+
+# Confidential: recommendation letters must never be published
+src/assets/recommendation/
+# Outdated CV (contains BUET, phone number, EmpowerEd) - do not publish
+src/assets/resume/
+.claude/

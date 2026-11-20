@@ -16,7 +16,6 @@ const Github = React.lazy(() => import("./sections/Github"));
 const Organization = React.lazy(() => import("./sections/Organization"));
 const AboutMe = React.lazy(() => import("./sections/Aboutme"));
 const Achievements = React.lazy(() => import("./sections/Achievements"));
-const Testimonials = React.lazy(() => import("./sections/Testimonials"));
 const Footer = React.lazy(() => import("./sections/Footer"));
 const Skill = React.lazy(() => import("./sections/Skill"));
 class ErrorBoundary extends React.Component {
@@ -248,8 +247,8 @@ const MyStoryPage = () => {
   return (
     <PageLayout
       title="My Story | Bushra's Portfolio"
-      description="Discover Bushra's personal story, achievements, skills, gallery, and appreciations."
-      keywords="About, Achievements, Skills, Gallery, Testimonials, Bushra"
+      description="Bushra Khandoker: background, achievements and skills."
+      keywords="Bushra Khandoker, Machine Learning, Computer Science, Achievements, Skills"
       canonicalUrl="/my-story"
       ogUrl="/my-story"
     >
@@ -264,9 +263,6 @@ const MyStoryPage = () => {
         </section>
         <section id="Skill">
           <SectionWrapper><Skill /></SectionWrapper>
-        </section>
-        <section id="testimonials">
-          <SectionWrapper><Testimonials /></SectionWrapper>
         </section>
       </main>
       

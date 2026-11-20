@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { profile } from "../content/profile";
 
 const About = () => {
   const navigate = useNavigate();
@@ -93,16 +94,6 @@ const About = () => {
     setTimeout(() => ripple.remove(), 600);
   };
 
-  const aboutContent = {
-    introduction:
-      "I'm Bushra, and for me, imagination is never enough—I need to see it come alive. Late at night, I'll often find myself with a sketch in one hand and a laptop in front of me, chasing an idea line by line in code until it finally moves, breathes, or responds on the screen.",
-    passion:
-      "I love to draw, solve problems, and code in C, C++, and Python. But what excites me most is watching creativity and logic collide. Whether I'm shaping 3D frontend designs or building something like Relivia—an app I created to help people manage anxiety and panic attacks—every project tells a story of discovery.",
-    leadership:
-      "My passion extends beyond personal projects. As founder and vice president of Empowered, I've learned that the most meaningful work happens when you step outside your own code and into your community. Launching initiatives and helping others grow has shown me that true impact isn't just about what I create—it's about what we build together.",
-    philosophy:
-      "Challenges don't scare me—they energize me. Every debugging session, every design problem, every community event sharpens my curiosity and pushes me further. That sense of adventure, whether in technology or in empowering others, is what drives me forward into uncharted territory.",
-  };
 
   const classes = {
     container: isMobile
@@ -172,7 +163,7 @@ const About = () => {
 
           {/* Paragraphs */}
           <div className="space-y-6 lg:space-y-8 text-champagne_pink font-description">
-            {Object.values(aboutContent).map((text, idx) => (
+            {profile.about.map((text, idx) => (
               <p key={idx} className={classes.text}>
                 {text}
               </p>
@@ -187,7 +178,7 @@ const About = () => {
               onMouseDown={(e) => createRipple(e, e.currentTarget)}
               onTouchStart={(e) => createRipple(e, e.currentTarget)}
             >
-              🚀 Explore My Universe
+              See Achievements
             </motion.button>
 
             <motion.button
@@ -196,7 +187,7 @@ const About = () => {
               onMouseDown={(e) => createRipple(e, e.currentTarget)}
               onTouchStart={(e) => createRipple(e, e.currentTarget)}
             >
-              💼 View My Works
+              View Projects
             </motion.button>
           </div>
         </div>

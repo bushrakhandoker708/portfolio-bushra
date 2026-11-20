@@ -258,7 +258,7 @@ const articles = [
     readTime: "8 min read",
     publishDate: "2024-01-15",
     featured: true,
-    description: "As someone who used to research quantum physics, it always annoys me when Schrödinger's cat is brought up in pop culture. It's often interpreted completely wrong. Typically, the interpretation suggests that you may or may not have murdered the cat, and because the box is closed and you don't know what happened, both things must have happened simultaneously.",
+    description: "It always annoys me when Schrödinger's cat is brought up in pop culture. It's often interpreted completely wrong. Typically, the interpretation suggests that you may or may not have murdered the cat, and because the box is closed and you don't know what happened, both things must have happened simultaneously.",
     keywords: ["quantum superposition", "schrodinger cat paradox", "quantum mechanics explained", "quantum physics research"]
   },
   {
@@ -563,11 +563,6 @@ const Research = () => {
   return (
     <div className="min-h-screen bg-transparent relative overflow-hidden">
       {/* SEO Metadata Component */}
-      <SEOMetadata 
-        articles={filteredAndSortedArticles} 
-        currentCategory={selectedCategory}
-        searchTerm={searchTerm}
-      />
 
       {/* Enhanced Hero Section with SEO-optimized content */}
       <header className="relative pt-12 pb-8 px-4 sm:px-6 lg:px-8" role="banner">
@@ -575,17 +570,17 @@ const Research = () => {
           <div className="text-center mb-12">
             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 tracking-tight leading-none">
               <span className="block bg-gradient-to-r from-lemon_chiffon-500 via-non_photo_blue-500 to-deep_indigo-700 bg-clip-text text-transparent mb-3">
-                Discover the
+                Science
               </span>
               <span className="block bg-gradient-to-r from-jordy_blue-500 via-mauve-500 to-aquamarine-500 bg-clip-text text-transparent relative animate-gradient-move bg-[length:200%_200%]">
-                Universe's Secrets
+                Writing
                 <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-gradient-to-r from-jordy_blue-500 to-mauve-500 rounded-full animate-pulse" />
               </span>
             </h1>
             
             <p className="font-description text-lg sm:text-xl text-lemon_chiffon-500 max-w-3xl mx-auto leading-relaxed mb-6">
-              Journey through cutting-edge research articles exploring quantum mechanics, cosmology, 
-              and the fundamental mysteries that shape our understanding of reality.
+              Explainer essays on quantum mechanics, cosmology and fundamental physics,
+              written for a general audience and published on Medium.
             </p>
 
 \
@@ -604,12 +599,12 @@ const Research = () => {
             <aside className="lg:col-span-1" role="complementary" aria-label="Search and filter options">
               <div className="bg-transparent rounded-3xl p-6 sticky top-4 overflow-y-auto">
                 <h2 className="font-heading py-6 text-2xl font-bold bg-gradient-to-r from-jordy_blue-500 to-mauve-500 bg-clip-text text-transparent mb-6">
-                  Explore Research
+                  Explore Essays
                 </h2>
                 
                 {/* Enhanced Search Bar with ARIA labels */}
                 <div className="relative mb-6 group">
-                  <label htmlFor="research-search" className="sr-only">Search research articles</label>
+                  <label htmlFor="research-search" className="sr-only">Search essays</label>
                   <input
                     id="research-search"
                     type="text"
@@ -702,7 +697,7 @@ const Research = () => {
                       aria-label="Show latest research"
                     >
                       <SparkleIcon className="w-4 h-4" />
-                      Latest Research
+                      Latest
                     </button>
                   </div>
                 </div>
@@ -947,7 +942,7 @@ const Research = () => {
                         <SearchIcon className="w-12 h-12 text-jordy_blue-500" />
                       </div>
                       <h3 className="font-heading text-2xl bg-gradient-to-r from-deep_indigo-700 to-deep_indigo-500 bg-clip-text text-transparent mb-4">
-                        No Research Articles Found
+                        No Essays Found
                       </h3>
                       <p className="font-description text-deep_indigo-500 mb-6 leading-relaxed">
                         We could not find any articles matching your search criteria. Try adjusting your filters or explore different research categories.
