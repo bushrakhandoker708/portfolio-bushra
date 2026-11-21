@@ -1,7 +1,7 @@
 // The Relevia numbers are transcribed by hand from the research repository.
 // These tests (1) pin the published values to the source files and (2) recompute
 // every derived quantity from the raw counts, so a typo in one place fails here.
-import { relevia } from "../data/research";
+import { relevia, RESEARCH_COMMIT } from "../data/research";
 
 // Wilson score interval, z = 1.96 (the method used in the source analysis).
 function wilson(k, n, z = 1.959964) {
@@ -97,8 +97,27 @@ describe("honesty constraints", () => {
     expect(relevia.hypotheses[1].status).toMatch(/no fine-tuning run/i);
   });
 
-  it("every source link points at the public research repository", () => {
-    const links = [relevia.pilot.source, relevia.compliance.source, relevia.latency.source, relevia.safety.source, ...relevia.evidence.map((e) => e.href)];
-    for (const l of links) expect(l).toMatch(/^https:\/\/github\.com\/bushrakhandoker708\/relevia-research\/blob\/main\//);
+  it("every source link points at one pinned commit of the public research repository", () => {
+    const links = [
+      relevia.pilot.source,
+      relevia.compliance.source,
+      relevia.latency.source,
+      relevia.safety.source,
+      ...relevia.evidence.map((e) => e.href),
+      ...relevia.register.map((x) => x.source),
+    ];
+    expect(RESEARCH_COMMIT).toMatch(/^[0-9a-f]{40}$/);
+    for (const l of links)
+      expect(l.startsWith(`https://github.com/bushrakhandoker708/relevia-research/blob/${RESEARCH_COMMIT}/`)).toBe(true);
+  });
+
+  it("labels every register entry with a known evidence status, and keeps planned work planned", () => {
+    const known = ["completed", "preliminary", "inconclusive", "planned", "unverified"];
+    for (const x of relevia.register) expect(known).toContain(x.status);
+    const status = (re) => relevia.register.find((x) => re.test(x.claim)).status;
+    expect(status(/LoRA/)).toBe("planned");
+    expect(status(/human ratings/)).toBe("planned");
+    expect(status(/browser/i)).toBe("planned");
+    expect(status(/relevance/)).toBe("inconclusive");
   });
 });

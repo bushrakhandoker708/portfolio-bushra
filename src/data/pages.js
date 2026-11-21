@@ -12,7 +12,7 @@ const person = {
   affiliation: { "@type": "CollegeOrUniversity", name: "Swansea University" },
   address: { "@type": "PostalAddress", addressLocality: "Swansea", addressCountry: "GB" },
   sameAs: [profile.links.github, profile.links.linkedin, profile.links.scholar].filter(Boolean),
-  knowsAbout: ["Machine learning", "Natural language processing", "Small language models", "Reproducible experimentation", "Software engineering"],
+  knowsAbout: ["Machine learning", "Small language models", "Machine learning evaluation", "Efficient inference", "Reproducible experimentation"],
 };
 
 /**
@@ -21,7 +21,7 @@ const person = {
  */
 export const pages = {
   "/": {
-    title: "Bushra Khandoker · Computer Science, AI/ML engineering and research",
+    title: "Bushra Khandoker · Reliable ML, resource-efficient AI and research engineering",
     description:
       "Computer Science undergraduate at Swansea University working on reliable small language models, reproducible machine learning and resource-efficient AI.",
     jsonLd: { "@context": "https://schema.org", ...person },

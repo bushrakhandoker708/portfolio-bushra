@@ -5,7 +5,7 @@ import { GITHUB_USER } from "./site";
 export const profile = {
   name: "Bushra Khandoker",
   role: "Computer Science Undergraduate",
-  focus: "AI/ML Engineering & Independent Research",
+  focus: "Reliable ML · Resource-Efficient AI · Research Engineering",
   affiliation: "Swansea University",
   location: "Swansea, United Kingdom",
   // Bushra's own words (from the earlier About text), then the current work.
@@ -25,14 +25,14 @@ export const profile = {
 // Research interests, in the order Bushra listed them. These are interests,
 // not claims of expertise.
 export const interests = [
-  "Machine learning and deep learning",
-  "Natural language processing and large language models",
-  "Resource-efficient AI systems",
+  "Machine learning reliability",
+  "Probability and uncertainty estimation",
+  "Small language models",
   "Parameter-efficient fine-tuning",
-  "AI safety and reliability",
+  "AI safety and robustness",
+  "Efficient inference",
   "Reproducible experimentation",
-  "Mathematics for machine learning",
-  "Software engineering and secure computing",
+  "Mathematical foundations of AI",
 ];
 
 // What the evidence shows Bushra is actively investigating right now.
@@ -45,14 +45,12 @@ export const currentInvestigations = [
   },
   {
     title: "Evaluating safety routing honestly",
-    detail:
-      "Measuring rule-based risk detection on held-out cases frozen before the detector was written, including the misses.",
+    detail: "Measuring rule-based risk detection on held-out cases frozen before the detector was written, including the misses.",
     href: "/research/relevia#safety",
   },
   {
     title: "What local inference actually costs",
-    detail:
-      "Separating time-to-first-token, decode rate and response length, and documenting host confounds such as system standby.",
+    detail: "Separating time-to-first-token, decode rate and response length, and documenting host confounds such as system standby.",
     href: "/research/relevia#latency",
   },
 ];

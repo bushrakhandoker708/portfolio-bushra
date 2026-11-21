@@ -5,6 +5,18 @@ import { relevia } from "../data/research";
 import { projects } from "../data/projects";
 import { capabilities } from "../data/skills";
 import { achievements } from "../data/achievements";
+import { experiments } from "../data/lab";
+import { SITE_URL, repoTree } from "../data/site";
+
+// Repositories a reviewer is most likely to want, research first.
+const REPOS = [
+  ["relevia-research", "Relevia research: protocols, notebooks, results, tests"],
+  ["relevia", "Relevia application: React and WebLLM"],
+  ["wine-quality-classification", "Comparative classifier study"],
+  ["HEXALOCK", "Team embedded-systems project (Stateflow)"],
+  ["study-buddy", "Browser-based maths graphing and study tools"],
+  ["bushal", "Full-stack e-commerce with an analytics service"],
+];
 
 function CvSection({ title, children }) {
   return (
@@ -24,7 +36,8 @@ export default function Cv() {
           {profile.role}, {profile.affiliation} · {profile.location}
         </p>
         <p className="mt-1 text-sm text-muted">
-          <a href={`mailto:${profile.email}`}>{profile.email}</a> · <a href={profile.links.github}>{profile.links.github.replace("https://", "")}</a>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a> ·{" "}
+          <a href={profile.links.github}>{profile.links.github.replace("https://", "")}</a>
         </p>
         <div className="no-print mt-6 flex flex-wrap gap-3">
           {profile.links.cvPdf ? (
@@ -38,7 +51,7 @@ export default function Cv() {
       </header>
 
       <CvSection title="Research interests">
-        <p className="text-muted">{interests.slice(0, 6).join("; ")}.</p>
+        <p className="text-muted">{interests.join("; ")}.</p>
       </CvSection>
 
       <CvSection title="Education">
@@ -65,9 +78,35 @@ export default function Cv() {
         <p className="text-sm text-faint">Independent project · {relevia.period}</p>
         <ul className="list-dash mt-2 space-y-1 text-sm text-muted">
           <li>Controlled A/B prompting study on a pinned Qwen2.5-1.5B-Instruct model with frozen, hashed configurations.</li>
-          <li>Conversation-level partitioning with leakage checks. Quarantined a historical dataset after finding a mislabelled licence.</li>
-          <li>Safety-routing evaluation on a held-out set frozen in advance; urgent-case recall improved from 9/24 to 18/24 with no false positives.</li>
+          <li>
+            Pilot result reported as inconclusive: relevance difference +0.125 (95% interval −0.875 to +1.125, n = 8, unblinded agent
+            ratings).
+          </li>
+          <li>
+            Conversation-level partitioning with leakage checks. Quarantined a historical dataset after finding a mislabelled licence.
+          </li>
+          <li>
+            Safety-routing evaluation on a held-out set frozen in advance: urgent-case recall rose from 9/24 to 18/24 with no false
+            positives (synthetic, agent-labelled cases; not clinical validation).
+          </li>
           <li>Latency analysis that identified a system-standby confound behind an apparent speed advantage.</li>
+          <li>Not yet done: blinded human ratings, LoRA adaptation, in-browser benchmarks.</li>
+        </ul>
+      </CvSection>
+
+      <CvSection title="ML experiments">
+        <ul className="space-y-3">
+          {experiments.map((e) => (
+            <li key={e.slug}>
+              <p className="font-medium text-ink">
+                <Link to={`/ml-lab/${e.slug}`} className="text-ink">
+                  {e.title}
+                </Link>{" "}
+                <span className="text-sm font-normal text-faint">· {e.period}</span>
+              </p>
+              <p className="text-sm text-muted">{e.summary}</p>
+            </li>
+          ))}
         </ul>
       </CvSection>
 
@@ -96,6 +135,22 @@ export default function Cv() {
             </div>
           ))}
         </dl>
+      </CvSection>
+
+      <CvSection title="Repositories">
+        <ul className="space-y-1 text-sm text-muted">
+          {REPOS.map(([repo, what]) => (
+            <li key={repo}>
+              <a href={repoTree(repo)} className="num">
+                {repo}
+              </a>{" "}
+              · {what}
+            </li>
+          ))}
+          <li>
+            Portfolio: <a href={SITE_URL}>{SITE_URL.replace("https://", "")}</a>
+          </li>
+        </ul>
       </CvSection>
 
       <CvSection title="Earlier achievements">

@@ -37,7 +37,7 @@ describe("home page", () => {
   it("shows the agreed identity and actions", () => {
     renderAt("/");
     expect(screen.getByRole("heading", { level: 1, name: "Bushra Khandoker" })).toBeInTheDocument();
-    const tagline = screen.getByText((_, el) => el?.tagName === "P" && /^Computer Science Undergraduate\s*\|\s*,?\s*AI\/ML Engineering & Independent Research$/.test(el.textContent.trim()));
+    const tagline = screen.getByText((_, el) => el?.tagName === "P" && /^Computer Science Undergraduate\s*\|\s*,?\s*Reliable ML · Resource-Efficient AI · Research Engineering$/.test(el.textContent.trim()));
     expect(tagline).toBeInTheDocument();
     expect(screen.getByText(/Imagination is never enough for me; I need to see it come alive/)).toBeInTheDocument();
     for (const name of [/Explore research/i, /View projects/i, /CV/, /GitHub/]) {

@@ -5,12 +5,7 @@ import { Reveal } from "../motion";
 /** External link that always opens safely and announces that it leaves the site. */
 export function ExternalLink({ href, children, className = "" }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
       {children}
       <span aria-hidden="true"> ↗</span>
       <span className="sr-only"> (opens in a new tab)</span>
@@ -47,6 +42,9 @@ const STATUS_STYLES = {
   partial: "border-amber/60 bg-amber/10 text-amber",
   planned: "border-rule text-faint",
   upcoming: "border-rule text-faint",
+  preliminary: "border-amber/60 bg-amber/10 text-amber",
+  inconclusive: "border-lavender/50 bg-lavender/10 text-lavender",
+  unverified: "border-dashed border-rose/60 text-rose",
 };
 const STATUS_LABELS = {
   completed: "Completed",
@@ -54,6 +52,9 @@ const STATUS_LABELS = {
   partial: "In progress",
   planned: "Planned",
   upcoming: "Upcoming",
+  preliminary: "Preliminary",
+  inconclusive: "Inconclusive",
+  unverified: "Unverified",
 };
 
 /** Small status pill. Text always carries the meaning; colour is secondary. */
@@ -69,9 +70,7 @@ export function StatusBadge({ state, children }) {
 
 export function Tag({ children }) {
   return (
-    <li className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-label text-xs font-semibold text-muted">
-      {children}
-    </li>
+    <li className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-label text-xs font-semibold text-muted">{children}</li>
   );
 }
 
@@ -108,12 +107,7 @@ export function PageHeader({ eyebrow, title, children, visual, accent }) {
 export function Section({ id, eyebrow, title, children, accent, className = "" }) {
   const headingId = id ? `${id}-heading` : undefined;
   return (
-    <section
-      id={id}
-      aria-labelledby={headingId}
-      data-accent={accent}
-      className={`wrap scroll-mt-24 py-10 sm:py-16 ${className}`}
-    >
+    <section id={id} aria-labelledby={headingId} data-accent={accent} className={`wrap scroll-mt-24 py-10 sm:py-16 ${className}`}>
       {/* Each section is its own hydration unit, so React can yield between
           sections instead of hydrating the whole page in one long task. */}
       <Suspense fallback={null}>
@@ -123,10 +117,7 @@ export function Section({ id, eyebrow, title, children, accent, className = "" }
             <h2 id={headingId} className="text-3xl font-semibold sm:text-4xl">
               {title}
             </h2>
-            <div
-              aria-hidden="true"
-              className="mt-4 h-px w-24 bg-gradient-to-r from-accent via-accent/50 to-transparent"
-            />
+            <div aria-hidden="true" className="mt-4 h-px w-24 bg-gradient-to-r from-accent via-accent/50 to-transparent" />
           </div>
           {children}
         </Reveal>
@@ -136,15 +127,7 @@ export function Section({ id, eyebrow, title, children, accent, className = "" }
 }
 
 /** Image figure with intrinsic dimensions (prevents layout shift). */
-export function Figure({
-  src,
-  alt,
-  caption,
-  width,
-  height,
-  eager = false,
-  className = "",
-}) {
+export function Figure({ src, alt, caption, width, height, eager = false, className = "" }) {
   return (
     <figure className={className}>
       <img
@@ -156,9 +139,7 @@ export function Figure({
         decoding="async"
         className="w-full rounded-xl border border-white/10 bg-raised"
       />
-      {caption && (
-        <figcaption className="mt-2 text-sm text-faint">{caption}</figcaption>
-      )}
+      {caption && <figcaption className="mt-2 text-sm text-faint">{caption}</figcaption>}
     </figure>
   );
 }
@@ -169,10 +150,7 @@ export function Callout({ tone = "note", title, children }) {
     warning: "border-l-amber",
   };
   return (
-    <aside
-      className={`card max-w-prose rounded-xl border-l-4 p-4 sm:p-5 ${tones[tone]}`}
-      role="note"
-    >
+    <aside className={`card max-w-prose rounded-xl border-l-4 p-4 sm:p-5 ${tones[tone]}`} role="note">
       {title && <p className="mb-1 font-medium text-ink">{title}</p>}
       <div className="text-sm text-muted">{children}</div>
     </aside>
@@ -185,12 +163,7 @@ export function Callout({ tone = "note", title, children }) {
  */
 export function ScrollRegion({ label, children, className = "" }) {
   return (
-    <div
-      role="region"
-      aria-label={label}
-      tabIndex={0}
-      className={`overflow-x-auto rounded-sm ${className}`}
-    >
+    <div role="region" aria-label={label} tabIndex={0} className={`relative overflow-x-auto rounded-sm ${className}`}>
       {children}
     </div>
   );

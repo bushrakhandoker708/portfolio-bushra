@@ -11,18 +11,24 @@ import { RevealGroup, RevealItem } from "../components/motion";
 const ACCENTS = ["gold", "teal", "rose", "sky", "lavender"];
 // A tag filter only helps once there is something to filter.
 const FILTER_FROM = 3;
+// Track items: how each evidence level is shown.
+const TRACK_STATE = { published: "completed", notes: "current", planned: "planned" };
+const TRACK_LABEL = { published: "Published", notes: "Notes only", planned: "Planned" };
 
-/** One experiment: the question, two headline numbers, the method tags. */
+/** One experiment as a row: the question, two headline numbers, the method tags. */
 function ExperimentCard({ e }) {
   return (
-    <article className="card card-hover group relative overflow-hidden p-6 sm:p-8 xl:p-10">
+    <article className="group relative py-10 sm:py-12">
       <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] xl:gap-14">
         <div>
           <p className="font-label text-xs font-semibold uppercase tracking-label text-accent">
             Experiment {String(e.number).padStart(2, "0")} · {e.kind} · {e.period}
           </p>
           <h3 className="mt-3 text-2xl font-semibold sm:text-3xl 2xl:text-4xl">
-            <Link to={`/ml-lab/${e.slug}`} className="text-ink no-underline after:absolute after:inset-0 after:z-20 hover:text-accent">
+            <Link
+              to={`/ml-lab/${e.slug}`}
+              className="text-ink no-underline transition-colors after:absolute after:inset-0 after:z-20 group-hover:text-accent"
+            >
               {e.title}
             </Link>
           </h3>
@@ -73,9 +79,9 @@ function Experiments() {
           ))}
         </div>
       )}
-      <RevealGroup as="ul" className="grid gap-6">
+      <RevealGroup as="ul" className="border-b border-rule/70">
         {shown.map((e) => (
-          <RevealItem as="li" key={e.slug}>
+          <RevealItem as="li" key={e.slug} className="rule-top">
             <ExperimentCard e={e} />
           </RevealItem>
         ))}
@@ -211,12 +217,54 @@ export default function MlLab() {
         </div>
       </Section>
 
-      <Section id="next" title="Next in the lab" accent="rose">
-        <ul className="list-dash max-w-prose space-y-2 text-muted">
-          {mlLab.next.map((x) => (
-            <li key={x}>{x}</li>
+      <Section id="next" title="Lab tracks: what exists and what is planned" accent="rose">
+        <p className="max-w-prose text-muted">
+          Four tracks, each item labelled by the evidence behind it. &ldquo;Notes only&rdquo; means study notes, sometimes with code inside
+          a note, but no tested implementation. Nothing gets a page until there is something to publish.
+        </p>
+        <div className="mt-10 grid gap-x-10 gap-y-12 md:grid-cols-2 2xl:grid-cols-4">
+          {mlLab.tracks.map((t, ti) => (
+            <section key={t.title} aria-labelledby={`track-${ti}`}>
+              <h3 id={`track-${ti}`} className="text-lg font-medium">
+                {t.title}
+              </h3>
+              <ul className="mt-3">
+                {t.items.map((it) => (
+                  <li key={it.name} className="rule-top py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-ink">
+                        {it.href ? (
+                          it.href.startsWith("/") ? (
+                            <Link to={it.href}>{it.name}</Link>
+                          ) : (
+                            <a href={it.href} target="_blank" rel="noopener noreferrer">
+                              {it.name}
+                              <span className="sr-only"> (opens in a new tab)</span>
+                            </a>
+                          )
+                        ) : (
+                          it.name
+                        )}
+                      </span>
+                      <StatusBadge state={TRACK_STATE[it.status]}>{TRACK_LABEL[it.status]}</StatusBadge>
+                    </div>
+                    {it.note && <p className="mt-1 text-sm text-muted">{it.note}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
+        <h3 className="mt-14 text-lg font-medium">What a published implementation carries</h3>
+        <ol className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+          {mlLab.standard.items.map((x, i) => (
+            <li key={x}>
+              <span className="num mr-1.5 text-faint">{i + 1}</span>
+              {x}
+            </li>
+          ))}
+        </ol>
+        <p className="mt-4 max-w-prose text-sm text-muted">{mlLab.standard.note}</p>
         <p className="mt-6 max-w-prose text-muted">
           {mlLab.appliedElsewhere.text} <Link to={mlLab.appliedElsewhere.href}>See the Relevia research</Link>.
         </p>

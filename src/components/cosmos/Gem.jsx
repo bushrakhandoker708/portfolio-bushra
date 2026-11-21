@@ -622,69 +622,242 @@ function Routing({ onInfo }) {
 
 /* ---------- projects: the four project stories ---------- */
 const PROJECTS = [
-  { title: "StudyBuddy", note: "a graphing engine that checks its own maths", colour: COLOURS.teal },
+  { title: "StudyBuddy", note: "maths graphing in the browser", colour: COLOURS.teal },
   { title: "Bushal", note: "a shop that counts stock exactly once", colour: COLOURS.gold },
   { title: "Relevia", note: "a supportive chat that runs on the device", colour: COLOURS.lavender },
   { title: "HEXALOCK", note: "a six-compartment smart locker", colour: COLOURS.sky },
 ];
-function ProjectGeometry({ index }) {
-  const surface = useMemo(() => {
-    if (index !== 0) return null;
-    const g = new THREE.PlaneGeometry(1.1, 1.1, 18, 18);
+const RING_R = 1.85;
+const TAU = Math.PI * 2;
+
+// StudyBuddy: a small patch of z = sin x · cos y, shaded by its Gaussian
+// curvature K (between −1 and 1 here): teal for bowls, rose for saddles,
+// pale where the surface is nearly flat.
+function MiniSurface() {
+  const geo = useMemo(() => {
+    const g = new THREE.PlaneGeometry(0.88, 0.88, 32, 32);
     const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i += 1) pos.setZ(i, f(pos.getX(i) * 4, pos.getY(i) * 4) * 0.18);
+    const colour = new Float32Array(pos.count * 3);
+    const bowl = new THREE.Color(COLOURS.teal);
+    const saddle = new THREE.Color(COLOURS.rose);
+    const flat = new THREE.Color(COLOURS.champagne);
+    const c = new THREE.Color();
+    for (let i = 0; i < pos.count; i += 1) {
+      const x = pos.getX(i) * 5.4;
+      const y = pos.getY(i) * 5.4;
+      pos.setZ(i, f(x, y) * 0.14);
+      const k = THREE.MathUtils.clamp(curvature(x, y), -1, 1);
+      c.copy(flat).lerp(k > 0 ? bowl : saddle, Math.abs(k) ** 0.6);
+      c.toArray(colour, i * 3);
+    }
+    g.setAttribute("color", new THREE.BufferAttribute(colour, 3));
     g.computeVertexNormals();
     return g;
-  }, [index]);
-  useEffect(() => () => surface?.dispose(), [surface]);
-  if (index === 0) return <primitive object={surface} attach="geometry" />;
-  if (index === 1) return <boxGeometry args={[0.62, 0.48, 0.62]} />;
-  if (index === 2) return <icosahedronGeometry args={[0.38, 3]} />;
-  return <cylinderGeometry args={[0.4, 0.4, 0.42, 6]} />;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return (
+    <group rotation={[-0.85, 0, 0.3]}>
+      <mesh geometry={geo}>
+        <meshStandardMaterial vertexColors roughness={0.5} metalness={0.05} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh geometry={geo}>
+        <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.07} />
+      </mesh>
+    </group>
+  );
 }
-function ProjectNode({ p, index, angle, focused, onFocus }) {
-  const ref = useRef(null);
-  const mat = useRef(null);
-  const idle = useIdle();
-  useFrame((state, dt) => {
-    const k = focused ? 1 : 0;
-    ref.current.scale.setScalar(damp(ref.current.scale.x, focused ? 1.45 : 0.85, 4, dt));
-    ref.current.rotation.y += dt * (0.3 + k * 0.6) * idle(dt);
-    if (index === 2) ref.current.scale.multiplyScalar(1 + Math.sin(state.clock.elapsedTime * (Math.PI / 4)) * 0.04 * idle(0));
-    mat.current.emissiveIntensity = damp(mat.current.emissiveIntensity, 0.15 + k * 0.5, 4, dt);
-    mat.current.opacity = damp(mat.current.opacity, focused ? 0.95 : 0.6, 4, dt);
+
+// Bushal: three parcels, each with a band of tape.
+const PARCELS = [
+  { at: [0, -0.24, 0], size: [0.64, 0.34, 0.5], turn: 0.12, colour: COLOURS.gold },
+  { at: [0.04, 0.09, 0.02], size: [0.5, 0.3, 0.42], turn: -0.22, colour: COLOURS.champagne },
+  { at: [-0.02, 0.37, -0.01], size: [0.36, 0.25, 0.3], turn: 0.38, colour: COLOURS.gold },
+];
+function MiniParcels() {
+  return PARCELS.map((b) => (
+    <group key={b.at.join()} position={b.at} rotation={[0, b.turn, 0]}>
+      <mesh>
+        <boxGeometry args={b.size} />
+        <meshStandardMaterial color={b.colour} roughness={0.6} metalness={0.05} />
+      </mesh>
+      <mesh>
+        <boxGeometry args={[b.size[0] * 1.01, b.size[1] * 1.01, b.size[2] * 0.2]} />
+        <meshStandardMaterial color="#a9773a" roughness={0.45} />
+      </mesh>
+    </group>
+  ));
+}
+
+// Relevia: the breathing orb, small. Its scale is set from the clock every
+// frame (never multiplied onto the last frame's value), so it cannot drift.
+function MiniOrb({ calm }) {
+  const orb = useRef(null);
+  const halo = useRef(null);
+  useFrame((state) => {
+    const k = calm.current;
+    const s = (0.5 - 0.5 * Math.cos((state.clock.elapsedTime / 8) * TAU)) * k;
+    orb.current.scale.setScalar(1 + s * 0.07);
+    halo.current.scale.setScalar(1 + s * 0.3);
+    halo.current.material.opacity = 0.55 - s * 0.35;
   });
   return (
-    <mesh
+    <group>
+      <mesh ref={orb}>
+        <icosahedronGeometry args={[0.34, 5]} />
+        <meshPhysicalMaterial
+          color={COLOURS.lavender}
+          emissive={COLOURS.mauve}
+          emissiveIntensity={0.18}
+          roughness={0.22}
+          clearcoat={1}
+          clearcoatRoughness={0.25}
+        />
+      </mesh>
+      <mesh ref={halo} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.5, 0.008, 8, 96]} />
+        <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.55} />
+      </mesh>
+    </group>
+  );
+}
+
+// HEXALOCK: a honeycomb of seven cells, one compartment standing open.
+const HEX_R = 0.15;
+const HEX_CELLS = [
+  [0, 0],
+  ...Array.from({ length: 6 }, (_, k) => {
+    const a = Math.PI / 6 + (k * Math.PI) / 3;
+    const d = 2 * HEX_R * Math.cos(Math.PI / 6) + 0.012;
+    return [Math.cos(a) * d, Math.sin(a) * d];
+  }),
+];
+function MiniHex() {
+  const geo = useMemo(() => new THREE.CylinderGeometry(HEX_R, HEX_R, 0.24, 6), []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return HEX_CELLS.map(([x, y], i) => {
+    const open = i === 2;
+    const colour = open ? COLOURS.teal : i === 0 ? COLOURS.champagne : COLOURS.sky;
+    return (
+      <group key={`${x}${y}`} position={[x, y, open ? 0.12 : 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh geometry={geo}>
+          <meshStandardMaterial color={colour} roughness={0.35} metalness={0.25} />
+        </mesh>
+        <Edges geometry={geo} colour="#ffffff" opacity={0.35} />
+      </group>
+    );
+  });
+}
+
+const MINI = [MiniSurface, MiniParcels, MiniOrb, MiniHex];
+
+function ProjectNode({ p, index, focused, onFocus }) {
+  const ref = useRef(null);
+  const model = useRef(null);
+  const halo = useRef(null);
+  const spin = useRef(0);
+  const calm = useRef(1);
+  const idle = useIdle();
+  const Mini = MINI[index];
+  useFrame((state, dt) => {
+    const k = idle(dt);
+    calm.current = k;
+    ref.current.scale.setScalar(damp(ref.current.scale.x, focused ? 1.12 : 0.82, 4, dt));
+    // A slow turn while nobody has touched the scene; afterwards each model
+    // eases back to face the visitor instead of stopping at a random angle.
+    if (k > 0.02) spin.current += dt * 0.35 * k;
+    else spin.current = damp(spin.current, Math.round(spin.current / TAU) * TAU, 3, dt);
+    model.current.rotation.y = spin.current;
+    model.current.position.y = Math.sin(state.clock.elapsedTime * 0.8 + index * 1.7) * 0.05 * k;
+    halo.current.material.opacity = damp(halo.current.material.opacity, focused ? 0.7 : 0, 5, dt);
+  });
+  return (
+    <group
       ref={ref}
-      position={[Math.cos(angle) * 1.75, Math.sin(angle) * 0.55, Math.sin(angle) * 1.2]}
-      rotation={index === 0 ? [-1.1, 0, 0] : [0.3, 0, 0]}
+      position={[RING_R, 0, 0]}
       onClick={(e) => {
         e.stopPropagation();
         onFocus(index);
       }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = "";
+      }}
     >
-      <ProjectGeometry index={index} />
-      <meshPhysicalMaterial
-        ref={mat}
-        color={p.colour}
-        emissive={p.colour}
-        emissiveIntensity={0.15}
-        roughness={0.3}
-        clearcoat={1}
-        transparent
-        opacity={0.6}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+      {/* An invisible sphere around each model, so the small ones are easy to tap. */}
+      <mesh>
+        <sphereGeometry args={[0.56, 12, 12]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {/* Face the camera when this project is at the front of the ring. */}
+      <group rotation={[0, Math.PI / 2, 0]}>
+        <group ref={model}>
+          <Mini calm={calm} />
+        </group>
+      </group>
+      <mesh ref={halo} position={[0, -0.52, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.46, 0.01, 8, 80]} />
+        <meshBasicMaterial color={p.colour} transparent opacity={0} />
+      </mesh>
+    </group>
   );
 }
+
+// Fixed specks of dust around the ring, for depth. Seeded, so every visit is the same.
+function Dust() {
+  const geo = useMemo(() => {
+    const rnd = seeded(4);
+    const pts = new Float32Array(160 * 3);
+    for (let i = 0; i < 160; i += 1) {
+      const r = 2.6 + rnd() * 1.8;
+      const t = rnd() * TAU;
+      const u = rnd() * 2 - 1;
+      const q = Math.sqrt(1 - u * u);
+      pts.set([r * q * Math.cos(t), r * u * 0.6, r * q * Math.sin(t)], i * 3);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+    return g;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return (
+    <points geometry={geo}>
+      <pointsMaterial color={COLOURS.champagne} size={0.03} sizeAttenuation transparent opacity={0.5} depthWrite={false} />
+    </points>
+  );
+}
+
+function OrbitDots() {
+  const geo = useMemo(() => {
+    const n = 72;
+    const pts = new Float32Array(n * 3);
+    for (let i = 0; i < n; i += 1) pts.set([Math.cos((i / n) * TAU) * RING_R, 0, Math.sin((i / n) * TAU) * RING_R], i * 3);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+    return g;
+  }, []);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return (
+    <points geometry={geo}>
+      <pointsMaterial color={COLOURS.champagne} size={0.035} sizeAttenuation transparent opacity={0.55} depthWrite={false} />
+    </points>
+  );
+}
+
 function Projects({ onInfo }) {
   const [focus, setFocus] = useState(0);
   useEffect(() => {
     const p = PROJECTS[focus];
     onInfo?.(`${p.title}: ${p.note}. Tap another to bring it forward.`);
   }, [focus, onInfo]);
+  useEffect(
+    () => () => {
+      document.body.style.cursor = "";
+    },
+    [],
+  );
   const ring = useRef(null);
   // Turn the ring so the focused project comes to the front.
   useFrame((_, dt) => {
@@ -694,20 +867,31 @@ function Projects({ onInfo }) {
     ring.current.rotation.y += diff * Math.min(1, dt * 2.5);
   });
   return (
-    <group rotation={[0.42, 0, 0]}>
-      <group ref={ring}>
+    <group rotation={[0.38, 0, 0]}>
+      <hemisphereLight args={[COLOURS.champagne, "#1a1430", 0.7]} />
+      {/* A small warm core lights each model from the inside of the ring. */}
+      <pointLight position={[0, 0.2, 0]} intensity={5} distance={5} decay={1.6} color={COLOURS.champagne} />
+      <mesh>
+        <sphereGeometry args={[0.07, 24, 24]} />
+        <meshBasicMaterial color={COLOURS.champagne} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[0.16, 24, 24]} />
+        <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.12} depthWrite={false} />
+      </mesh>
+      <Dust />
+      {/* Starts already turned to the first project, so it does not swing round on load. */}
+      <group ref={ring} rotation={[0, -Math.PI / 2, 0]}>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.75, 0.006, 6, 160]} />
-          <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.3} />
+          <torusGeometry args={[RING_R, 0.004, 6, 200]} />
+          <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.22} />
         </mesh>
-        {PROJECTS.map((p, i) => {
-          const angle = (i * Math.PI) / 2;
-          return (
-            <group key={p.title} rotation={[0, angle, 0]}>
-              <ProjectNode p={p} index={i} angle={0} focused={i === focus} onFocus={setFocus} />
-            </group>
-          );
-        })}
+        <OrbitDots />
+        {PROJECTS.map((p, i) => (
+          <group key={p.title} rotation={[0, (i * Math.PI) / 2, 0]}>
+            <ProjectNode p={p} index={i} focused={i === focus} onFocus={setFocus} />
+          </group>
+        ))}
       </group>
     </group>
   );
@@ -1105,9 +1289,9 @@ const SHAPES = {
   margin: Margin,
   forest: Forest,
 };
-const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, routing: 6.4, projects: 6, margin: 6.2, forest: 7.4 };
+const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, routing: 6.4, projects: 6.8, margin: 6.2, forest: 7.4 };
 
-const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0.08, forest: 0.05 };
+const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0, forest: 0.05 };
 
 export default function Gem({ shape = "crystals", running = true, onInfo, params }) {
   const Shape = SHAPES[shape] ?? Crystals;

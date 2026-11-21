@@ -3,7 +3,7 @@ import RepoActivity from "../components/RepoActivity";
 import { researchIndex } from "../data/research";
 import { interests, currentInvestigations } from "../data/profile";
 import { PageHeader, Section, StatusBadge, TagList } from "../components/ui";
-import { RevealGroup, RevealItem, Tilt } from "../components/motion";
+import { RevealGroup, RevealItem } from "../components/motion";
 import Scene3D from "../components/cosmos/Scene3D";
 
 export default function Research() {
@@ -22,9 +22,9 @@ export default function Research() {
       </PageHeader>
 
       <Section id="studies" eyebrow="Studies" title="What I have run so far" accent="teal">
-        <ul className="grid gap-6">
+        <ul className="border-b border-rule/70">
           {researchIndex.map((s) => (
-            <li key={s.slug} className="card p-5 sm:p-8">
+            <li key={s.slug} className="rule-top py-8 sm:py-10">
               <div className="mb-3 flex flex-wrap items-center gap-3">
                 <StatusBadge state="partial">{s.status}</StatusBadge>
                 <span className="text-sm text-faint">{s.period}</span>
@@ -48,18 +48,23 @@ export default function Research() {
       </Section>
 
       <Section id="investigating" eyebrow="Now" title="What I am investigating" accent="gold">
-        <RevealGroup as="ul" className="grid gap-5 md:grid-cols-3">
+        <RevealGroup as="ol" className="grid gap-10 md:grid-cols-3 md:gap-12">
           {currentInvestigations.map((c, i) => (
-            <RevealItem as="li" key={c.title}>
-              <Tilt className="card card-hover h-full p-6">
-                <p className="num text-sm text-accent">0{i + 1}</p>
-                <h3 className="mt-2 text-xl font-semibold">
-                  <Link to={c.href} className="text-ink no-underline after:absolute after:inset-0 after:z-20 hover:text-teal">
+            <RevealItem as="li" key={c.title} className="group relative flex gap-4">
+              <span aria-hidden="true" className="num text-2xl leading-none text-accent/70">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <h3 className="text-xl font-semibold">
+                  <Link
+                    to={c.href}
+                    className="text-ink no-underline transition-colors after:absolute after:inset-0 after:z-20 group-hover:text-teal"
+                  >
                     {c.title}
                   </Link>
                 </h3>
                 <p className="mt-2 text-sm text-muted">{c.detail}</p>
-              </Tilt>
+              </div>
             </RevealItem>
           ))}
         </RevealGroup>

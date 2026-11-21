@@ -1,22 +1,28 @@
 import { Link } from "react-router-dom";
 import RepoActivity from "../components/RepoActivity";
-import { relevia as r } from "../data/research";
+import { relevia as r, RESEARCH_COMMIT } from "../data/research";
 import { Callout, ExternalLink, PageHeader, ScrollRegion, Section, StatusBadge } from "../components/ui";
 import { ChartFigure, ConfusionMatrix, DataTable, IntervalPlot, Pipeline, ProportionPlot, fmt, pct } from "../components/research/charts";
 
 const TOC = [
+  ["abstract", "Abstract"],
   ["motivation", "Motivation"],
+  ["literature", "Related work"],
   ["question", "Research question"],
   ["method", "Method"],
   ["experiment", "Prompting pilot"],
   ["compliance", "Instruction compliance"],
   ["latency", "Inference cost"],
   ["safety", "Safety routing"],
+  ["status", "Evidence status"],
   ["negative", "Negative results"],
   ["reproducibility", "Reproducibility"],
   ["limitations", "Limitations"],
+  ["publication", "Before publication"],
   ["next", "Next steps"],
 ];
+
+const SHORT = RESEARCH_COMMIT.slice(0, 7);
 
 export default function ReleviaCase() {
   const allMean = r.latency.elapsed[0];
@@ -60,12 +66,30 @@ export default function ReleviaCase() {
         </ol>
       </nav>
 
+      <Section id="abstract" title="Abstract" accent="sky">
+        <p className="max-w-prose text-lg leading-relaxed text-ink/90">{r.abstract}</p>
+      </Section>
+
       <Section id="motivation" title="Motivation" accent="gold">
         <div className="prose-body">
           {r.motivation.map((p) => (
             <p key={p.slice(0, 24)}>{p}</p>
           ))}
         </div>
+      </Section>
+
+      <Section id="literature" title="Where this sits in related work" accent="lavender">
+        <p className="max-w-prose text-muted">{r.literature.note}</p>
+        <dl className="mt-8 grid gap-x-10 lg:grid-cols-2">
+          {r.literature.items.map((l) => (
+            <div key={l.work} className="rule-top py-5">
+              <dt className="font-medium text-ink">
+                <ExternalLink href={l.href}>{l.work}</ExternalLink>
+              </dt>
+              <dd className="mt-2 text-sm text-muted">{l.relation}</dd>
+            </div>
+          ))}
+        </dl>
       </Section>
 
       <Section id="question" title="Research question and hypotheses" accent="teal">
@@ -125,8 +149,8 @@ export default function ReleviaCase() {
       <Section id="experiment" title="Prompting pilot: developed vs minimal prompt" accent="sky">
         <div className="prose-body mb-8">
           <p>
-            {r.pilot.responses} responses were generated for {r.pilot.n} held-out synthetic scenarios, with no runtime failures. The prompt was
-            developed on separate development data across two rounds, then frozen before test generation.
+            {r.pilot.responses} responses were generated for {r.pilot.n} held-out synthetic scenarios, with no runtime failures. The prompt
+            was developed on separate development data across two rounds, then frozen before test generation.
           </p>
         </div>
         <ChartFigure
@@ -182,10 +206,10 @@ export default function ReleviaCase() {
       <Section id="latency" title="Inference cost, and a confound I found" accent="gold">
         <div className="prose-body mb-8">
           <p>
-            At first, B seemed to finish {Math.abs(allMean.mean).toFixed(1)} s sooner on average. Two pairs overlapped a Windows Modern Standby
-            interval recorded in the system log. With those two excluded, the mean difference shrinks to {Math.abs(exclMean.mean).toFixed(1)} s and
-            the median&apos;s interval includes zero. B is not faster per token. It starts more slowly and finishes sooner because its replies are
-            shorter.
+            At first, B seemed to finish {Math.abs(allMean.mean).toFixed(1)} s sooner on average. Two pairs overlapped a Windows Modern
+            Standby interval recorded in the system log. With those two excluded, the mean difference shrinks to{" "}
+            {Math.abs(exclMean.mean).toFixed(1)} s and the median&apos;s interval includes zero. B is not faster per token. It starts more
+            slowly and finishes sooner because its replies are shorter.
           </p>
         </div>
         <ChartFigure
@@ -263,9 +287,9 @@ export default function ReleviaCase() {
       <Section id="safety" title="Safety routing: measured on cases frozen in advance" accent="teal">
         <div className="prose-body mb-8">
           <p>
-            Before inference, a deterministic rule set decides whether a message needs an urgent-support response. S2 applies the S1 rules after
-            normalising {r.safety.normalisation.join(", ")}. The held-out set was frozen before S2 was written: {r.safety.urgent} urgent and{" "}
-            {r.safety.nonUrgent} ordinary messages, with {r.safety.excluded} ambiguous cases excluded.
+            Before inference, a deterministic rule set decides whether a message needs an urgent-support response. S2 applies the S1 rules
+            after normalising {r.safety.normalisation.join(", ")}. The held-out set was frozen before S2 was written: {r.safety.urgent}{" "}
+            urgent and {r.safety.nonUrgent} ordinary messages, with {r.safety.excluded} ambiguous cases excluded.
           </p>
         </div>
         <ChartFigure
@@ -297,9 +321,32 @@ export default function ReleviaCase() {
           ))}
         </div>
         <p className="mt-6 max-w-prose text-sm text-muted">
-          S0 catches more than S1 but raises {r.safety.detectors[0].fp} false alarms. S2 recovers most of what S1 missed without adding false
-          alarms on this set. With only {r.safety.urgent} urgent cases, the intervals are wide and overlap.
+          S0 catches more than S1 but raises {r.safety.detectors[0].fp} false alarms. S2 recovers most of what S1 missed without adding
+          false alarms on this set. With only {r.safety.urgent} urgent cases, the intervals are wide and overlap.
         </p>
+      </Section>
+
+      <Section id="status" title="What is established, and what is not" accent="sky">
+        <p className="max-w-prose text-muted">
+          Every result on this page, labelled by how far it can be trusted. Each source link opens the file at commit{" "}
+          <code className="num">{SHORT}</code> of the research repository, so it shows exactly what the number was copied from.
+        </p>
+        <ul className="mt-8" aria-label="Evidence status of each result">
+          {r.register.map((x) => (
+            <li key={x.claim} className="rule-top grid gap-x-8 gap-y-2 py-4 md:grid-cols-[1fr_9rem_15rem] md:items-start">
+              <p className="text-ink">
+                {x.claim}
+                {x.note && <span className="mt-1 block text-sm text-muted">{x.note}</span>}
+              </p>
+              <p>
+                <StatusBadge state={x.status} />
+              </p>
+              <p className="min-w-0 break-words text-sm">
+                <ExternalLink href={x.source}>{x.source.split("/").pop()}</ExternalLink>
+              </p>
+            </li>
+          ))}
+        </ul>
       </Section>
 
       <Section id="negative" title="Negative results and anomalies, kept on the record" accent="rose">
@@ -317,6 +364,9 @@ export default function ReleviaCase() {
           ))}
         </ul>
         <h3 className="mb-3 mt-8 text-lg font-medium">Evidence</h3>
+        <p className="mb-3 text-sm text-faint">
+          Links open commit <code className="num">{SHORT}</code>, not the moving main branch.
+        </p>
         <ul className="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
           {r.evidence.map((e) => (
             <li key={e.href}>
@@ -332,6 +382,20 @@ export default function ReleviaCase() {
             <li key={n.slice(0, 30)}>{n}</li>
           ))}
         </ul>
+      </Section>
+
+      <Section id="publication" title="What publication would still need" accent="rose">
+        <p className="max-w-prose text-muted">
+          None of these has been done. They are listed so the distance between this pilot and a publishable study is visible.
+        </p>
+        <dl className="mt-8 grid gap-x-10 md:grid-cols-2 xl:grid-cols-3">
+          {r.toPublication.map((t) => (
+            <div key={t.need} className="rule-top py-5">
+              <dt className="font-medium text-ink">{t.need}</dt>
+              <dd className="mt-2 text-sm text-muted">{t.detail}</dd>
+            </div>
+          ))}
+        </dl>
       </Section>
 
       <Section id="next" title="Next steps" accent="gold">

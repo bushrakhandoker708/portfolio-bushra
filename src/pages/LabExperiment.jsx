@@ -206,7 +206,7 @@ export default function LabExperiment() {
         <p className="prose-body mb-8">
           The choices that shaped the result, with the options on the table and the reason for the one taken.
         </p>
-        <RevealGroup as="ol" className="grid gap-6 lg:grid-cols-2">
+        <RevealGroup as="ol" className="border-b border-rule/70">
           {e.thinking.map((t, i) => (
             <Fork key={t.question} n={i + 1} {...t} />
           ))}
@@ -287,7 +287,7 @@ export default function LabExperiment() {
 
       <Section id="pushback" eyebrow="Debugging the analysis" title="Where it pushed back" accent="rose">
         <p className="prose-body mb-8">The results that did not mean what they first seemed to, from the plan to what changed.</p>
-        <div className="grid gap-5">
+        <div className="border-b border-rule/70">
           {e.pushback.map((story, i) => (
             <Pushback key={story.title} story={story} open={i === 0} />
           ))}

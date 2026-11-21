@@ -34,6 +34,8 @@ export default {
         sans: ['"IBM Plex Sans"', '"Plex Sans Fallback"', "system-ui", "sans-serif"],
         label: ["Jura", '"Plex Sans Fallback"', "system-ui", "sans-serif"],
         mono: ["Jura", "ui-monospace", "monospace"],
+        // Real code excerpts need true fixed-width glyphs; these ship with the OS.
+        code: ["ui-monospace", '"Cascadia Code"', "Consolas", "Menlo", '"Liberation Mono"', "monospace"],
       },
       maxWidth: {
         prose: "68ch",

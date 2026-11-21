@@ -1,7 +1,11 @@
 import { repoFile, repoTree } from "./site";
 
 const R = "relevia-research";
-const src = (path) => repoFile(R, path);
+// Every evidence link points at this exact commit of relevia-research, so a
+// number on the site always resolves to the file it was copied from, even
+// after the repository moves on. Update it together with the values.
+export const RESEARCH_COMMIT = "286bd420d3d5505be9fd20efef37937785e90d75";
+const src = (path) => repoFile(R, path, RESEARCH_COMMIT);
 
 // ---------------------------------------------------------------------------
 // Relevia research. Every number below is transcribed from files in
@@ -23,6 +27,9 @@ export const relevia = {
     app: repoTree("relevia"),
     appLive: "https://bushrakhandoker708.github.io/relevia/",
   },
+  // A paragraph a prospective supervisor can read in under a minute.
+  abstract:
+    "Small language models can run on a user's own device, which keeps sensitive conversations away from inference servers but makes quality, safety and cost hard engineering constraints. I am testing whether a developed prompt, and later a LoRA adapter trained under the same prompt, changes supportive-dialogue quality on a pinned Qwen2.5-1.5B-Instruct model, and what each costs in harmful outcomes and latency. So far I have built the controls (conversation-level partitions with leakage checks, frozen and hashed configurations, paired bootstrap analysis) and run one pilot. On 8 held-out synthetic scenarios the developed prompt did not establish a relevance gain (+0.125, 95% interval −0.875 to +1.125, unblinded agent ratings). A rule-based safety router detected 18 of 24 held-out urgent messages with no false alarms on 18 ordinary ones, and still misses indirect phrasing. Blinded human ratings, the adapter condition and in-browser measurements have not been run.",
   disclosure:
     "Implementation and documentation in this project were developed with AI coding-assistant support and are subject to my review, as stated in the repository. Ratings described below are coding-agent assessments, not human judgements.",
   notClinical:
@@ -62,7 +69,51 @@ export const relevia = {
     ["Controlled variable", "System prompt only; configuration, rubric and runner frozen and hashed before test generation"],
     ["Data", "Synthetic scenarios with agent-authored labels; no real conversations used for generation"],
     ["Partitions", "Six conversation-level partitions; zero group overlap across all 15 partition pairs"],
+    [
+      "Provenance",
+      "A 15,000-row historical archive was quarantined after its licence was found mislabelled (CC BY-NC 4.0 recorded as MIT); no experiment uses it",
+    ],
+    ["Compute", "One laptop CPU; no GPU training run or memory budget measured yet, which is why LoRA is still a proposal"],
   ],
+
+  // What the closest work already establishes, and where this study sits.
+  // From research/notes/LITERATURE_REVIEW.md, which records an initial gap
+  // analysis, not a systematic review.
+  literature: {
+    note: "An initial gap analysis, not a systematic review. Full-text extraction of the closest papers is still to do, so no novelty claim is made.",
+    items: [
+      {
+        work: "Hu et al., LoRA (2021); Dettmers et al., QLoRA (2023)",
+        href: "https://arxiv.org/abs/2106.09685v2",
+        relation:
+          "Make adaptation affordable. Neither shows that an adapter beats a well-developed prompt or makes support responses safer, which is why condition C keeps prompt B.",
+      },
+      {
+        work: "Rashkin et al., EmpatheticDialogues (ACL 2019); Liu et al., ESConv (ACL 2021)",
+        href: "https://aclanthology.org/P19-1534/",
+        relation:
+          "Motivate emotional acknowledgement and support strategies. Both are CC BY-NC 4.0 and neither establishes clinical safety, so the pilot uses new synthetic scenarios instead of pooling them.",
+      },
+      {
+        work: "BN et al., The Pursuit of Empathy (EMNLP 2025)",
+        href: "https://aclanthology.org/2025.emnlp-main.1573/",
+        relation:
+          "The closest study: small models for supportive dialogue, zero-shot against fine-tuned. Its abstract reports gains that vary by scenario. Relevia differs in its tuned-prompt control and its device-cost measurements, not in studying small empathetic models.",
+      },
+      {
+        work: "Ibrahim, Hafner and Rocher (Nature, 2026)",
+        href: "https://doi.org/10.1038/s41586-026-10410-0",
+        relation:
+          "Warmth training can increase sycophancy. Full text not yet verified; it is the reason harmful agreement is scored separately from warmth.",
+      },
+      {
+        work: "Zheng et al., LLM-as-a-judge (2023); Röttger et al., XSTest (NAACL 2024)",
+        href: "https://arxiv.org/abs/2306.05685v4",
+        relation:
+          "Automated judges show position and verbosity bias, and safety words occur in benign text. Hence agent ratings are treated as provisional, and the router is tested on benign controls as well as urgent cases.",
+      },
+    ],
+  },
 
   pipeline: [
     { step: "Build partitions", detail: "Conversation-level train / dev / few-shot / validation / test splits", state: "completed" },
@@ -105,8 +156,18 @@ export const relevia = {
   latency: {
     source: src("results/analysis/robustness-v1/robustness.json"),
     elapsed: [
-      { label: "All 60 pairs", unit: "s", median: -3.652, lo: -5.570, hi: -0.384, mean: -18.870, meanLo: -51.706, meanHi: -1.278, n: 60 },
-      { label: "Excluding 2 pairs in a Windows standby window", unit: "s", median: -3.347, lo: -5.556, hi: 0.534, mean: -3.243, meanLo: -5.944, meanHi: -0.464, n: 58 },
+      { label: "All 60 pairs", unit: "s", median: -3.652, lo: -5.57, hi: -0.384, mean: -18.87, meanLo: -51.706, meanHi: -1.278, n: 60 },
+      {
+        label: "Excluding 2 pairs in a Windows standby window",
+        unit: "s",
+        median: -3.347,
+        lo: -5.556,
+        hi: 0.534,
+        mean: -3.243,
+        meanLo: -5.944,
+        meanHi: -0.464,
+        n: 58,
+      },
     ],
     components: [
       { label: "Time to first token", unit: "s", median: 2.415, lo: 2.329, hi: 2.464, n: 58 },
@@ -133,14 +194,143 @@ export const relevia = {
     excluded: 3,
     labels: "Agent-authored synthetic labels; routing only; not clinical validation.",
     detectors: [
-      { id: "S0", label: "Original rules", tp: 13, fn: 11, fp: 3, tn: 15, recall: 0.542, recallLo: 0.351, recallHi: 0.721, fpr: 0.167, fprLo: 0.058, fprHi: 0.392 },
-      { id: "S1", label: "Revised rules", tp: 9, fn: 15, fp: 0, tn: 18, recall: 0.375, recallLo: 0.212, recallHi: 0.573, fpr: 0, fprLo: 0, fprHi: 0.176 },
-      { id: "S2", label: "S1 + text normalisation", tp: 18, fn: 6, fp: 0, tn: 18, recall: 0.75, recallLo: 0.551, recallHi: 0.88, fpr: 0, fprLo: 0, fprHi: 0.176 },
+      {
+        id: "S0",
+        label: "Original rules",
+        tp: 13,
+        fn: 11,
+        fp: 3,
+        tn: 15,
+        recall: 0.542,
+        recallLo: 0.351,
+        recallHi: 0.721,
+        fpr: 0.167,
+        fprLo: 0.058,
+        fprHi: 0.392,
+      },
+      {
+        id: "S1",
+        label: "Revised rules",
+        tp: 9,
+        fn: 15,
+        fp: 0,
+        tn: 18,
+        recall: 0.375,
+        recallLo: 0.212,
+        recallHi: 0.573,
+        fpr: 0,
+        fprLo: 0,
+        fprHi: 0.176,
+      },
+      {
+        id: "S2",
+        label: "S1 + text normalisation",
+        tp: 18,
+        fn: 6,
+        fp: 0,
+        tn: 18,
+        recall: 0.75,
+        recallLo: 0.551,
+        recallHi: 0.88,
+        fpr: 0,
+        fprLo: 0,
+        fprHi: 0.176,
+      },
     ],
     normalisation: ["shorthand", "typos", "stretched letters", "leetspeak", "invisible characters"],
     misses:
-      "S2 still misses indirect statements and phrasings outside its rule set, such as \"killing myself\". A perturbation probe found that S1 missed \"I wanna die\".",
+      'S2 still misses indirect statements and phrasings outside its rule set, such as "killing myself". A perturbation probe found that S1 missed "I wanna die".',
   },
+
+  // Every result on the page, with how far it can be trusted and where it came from.
+  register: [
+    {
+      claim: "Conversation-level partitions with zero group overlap across all 15 partition pairs",
+      status: "completed",
+      source: src("results/milestone_3/leakage.json"),
+    },
+    {
+      claim: "Instruction compliance: 30 of 60 (A) against 1 of 60 (B) responses used the whole token budget",
+      status: "completed",
+      source: src("results/analysis/robustness-v1/robustness.json"),
+      note: "An execution measure, not a quality measure.",
+    },
+    {
+      claim: "The developed prompt improves rated relevance (H1)",
+      status: "inconclusive",
+      source: src("results/experiment_01/test-v1/analysis.json"),
+      note: "+0.125, interval −0.875 to +1.125; n = 8; unblinded agent ratings.",
+    },
+    {
+      claim: "B finishes sooner than A on CPU",
+      status: "preliminary",
+      source: src("results/analysis/robustness-v1/robustness.json"),
+      note: "Mostly because its replies are shorter; the median's interval includes zero once two standby-affected pairs are removed.",
+    },
+    {
+      claim: "S2 routing detects 18 of 24 urgent and flags 0 of 18 ordinary messages",
+      status: "preliminary",
+      source: src("results/safety/s2-v1/evaluation.json"),
+      note: "Synthetic, agent-authored labels; not clinical validation.",
+    },
+    {
+      claim: "Blinded independent human ratings, with agreement",
+      status: "planned",
+      source: src("results/experiment_01/independent_review_v1/manifest.json"),
+      note: "Rating sheets are prepared and still empty.",
+    },
+    {
+      claim: "LoRA adapter under prompt B (H2, condition C)",
+      status: "planned",
+      source: src("docs/milestone_4_protocol.md"),
+      note: "No adapter has been trained.",
+    },
+    {
+      claim: "In-browser WebLLM latency and memory on real devices",
+      status: "planned",
+      source: src("docs/browser_benchmark_protocol.md"),
+      note: "Harness prepared, not executed. The CPU timings are not browser results.",
+    },
+    {
+      claim: "This study fills a gap in the literature",
+      status: "unverified",
+      source: src("research/notes/LITERATURE_REVIEW.md"),
+      note: "Initial gap analysis only.",
+    },
+  ],
+
+  // What would still be needed before this could be submitted for publication.
+  toPublication: [
+    {
+      need: "Blinded human evaluation",
+      detail:
+        "At least two independent raters per response, condition labels hidden, inter-rater agreement reported, and agent ratings compared against them rather than used in their place.",
+    },
+    {
+      need: "A larger, powered test set",
+      detail:
+        "Eight rated scenarios cannot detect a plausible effect; the next sample size should be set from the pilot's variance before the run.",
+    },
+    {
+      need: "Controlled model adaptation",
+      detail:
+        "Condition C trained on audited, licence-checked data, with prompt, decoding and test inputs unchanged, and failed runs reported.",
+    },
+    {
+      need: "Safety validation",
+      detail:
+        "Risk labels reviewed by people qualified to judge them, indirect and non-English risk language, and benign controls, before any participant involvement or ethics application.",
+    },
+    {
+      need: "Browser performance benchmarking",
+      detail:
+        "WebLLM on several real devices: cold and warm load, time to first token, decode rate and memory, with cache and power state recorded.",
+    },
+    {
+      need: "A completed literature review",
+      detail: "Full-text extraction of the closest studies, so the contribution can be stated precisely.",
+    },
+  ],
 
   negativeResults: [
     "Both prompts kept an inadequate-escalation failure on the single immediate-risk pilot scenario.",

@@ -62,7 +62,8 @@ describe("evidence-based skill claims", () => {
   });
 
   it("no percentage or star-style mastery ratings anywhere in skills data", () => {
-    const text = JSON.stringify({ capabilities, mlLab });
+    // Links are left out: URL-encoded paths such as %E2%80%94 are not ratings.
+    const text = JSON.stringify({ capabilities, mlLab }, (k, v) => (k === "href" || k === "repo" || k === "readme" ? undefined : v));
     expect(text).not.toMatch(/\d+\s?%|mastery|expert/i);
   });
 
@@ -70,7 +71,9 @@ describe("evidence-based skill claims", () => {
     for (const m of mlLab.method) {
       const e = experiments.find((x) => x.slug === m.where.slug);
       expect(e, m.title).toBeDefined();
-      expect(["result", "question", "models", "protocol", "thinking", "results", "pushback", "cost", "open", "foundations"]).toContain(m.where.anchor);
+      expect(["result", "question", "models", "protocol", "thinking", "results", "pushback", "cost", "open", "foundations"]).toContain(
+        m.where.anchor,
+      );
     }
   });
 
