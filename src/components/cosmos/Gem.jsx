@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { relevia } from "../../data/research";
@@ -11,7 +11,8 @@ import { relevia } from "../../data/research";
  *   surface  z = sin x · cos y, coloured by the sign of its Gaussian curvature,
  *            with its critical points marked (maxima, minima, saddles)
  *   parcels  orders orbiting a database; confirming one is idempotent
- *   orb      a breathing sphere (Relevia's breathing tool)
+ *   balls    Relevia's breathing page: glossy balls floating with no gravity,
+ *            spreading out on the in-breath and gathering on the out-breath
  *   hex      six locker compartments that open and close
  *   crystals wireframe crystals; tap to energise, triple-tap to burst into bubbles
  *   routing  Relevia's safety routing: the 42 held-out messages through the
@@ -249,48 +250,160 @@ function Parcels() {
   );
 }
 
-/* ---------- orb: breathing ---------- */
-function Orb() {
-  const ref = useRef(null);
-  const mat = useRef(null);
-  const ring = useRef(null);
-  const palette = [COLOURS.lavender, COLOURS.teal, COLOURS.sky, COLOURS.champagne];
-  const [i, setI] = useState(0);
-  const target = useMemo(() => new THREE.Color(), []);
-  useFrame((state, dt) => {
-    // Four seconds in, four seconds out.
-    const s = 0.5 - 0.5 * Math.cos((state.clock.elapsedTime / 8) * Math.PI * 2);
-    ref.current.scale.setScalar(0.82 + s * 0.3);
-    ring.current.scale.setScalar(1.25 + s * 0.45);
-    ring.current.material.opacity = 0.5 - s * 0.35;
-    target.set(palette[i]);
-    mat.current.color.lerp(target, 1 - Math.pow(0.02, dt));
-    mat.current.emissive.lerp(target, 1 - Math.pow(0.02, dt));
+/* ---------- balls: Relevia's breathing page ---------- */
+// The breathing exercise in the Relevia app floats glossy balls behind its
+// circle. This is my own small version of that backdrop: no gravity, a slow
+// drift, balls that push each other apart, and a cloud that spreads out on the
+// in-breath and gathers on the out-breath (four seconds each, like the app's
+// simplest pattern). The pointer pushes them aside; a tap changes the colour.
+const BREATH = 8; // seconds for one in-and-out
+const breath = (t) => 0.5 - 0.5 * Math.cos((t / BREATH) * Math.PI * 2);
+// Each palette mirrors the app's: the pattern colour, white and gold.
+const BALL_PALETTES = [COLOURS.teal, COLOURS.lavender, COLOURS.sky, COLOURS.rose].map((c) => [c, "#ffffff", "#f2c14e", c]);
+function paintBalls(mesh, stops, n) {
+  const from = new THREE.Color();
+  const to = new THREE.Color();
+  const out = new THREE.Color();
+  for (let i = 0; i < n; i += 1) {
+    const x = (i / n) * (stops.length - 1);
+    const k = Math.min(Math.floor(x), stops.length - 2);
+    from.set(stops[k]);
+    to.set(stops[k + 1]);
+    mesh.setColorAt(i, out.copy(from).lerp(to, x - k));
+  }
+  mesh.instanceColor.needsUpdate = true;
+}
+
+// Fewer, smaller balls than space allows, each keeping a little distance from
+// the others, so the cloud reads as separate balls and parts easily.
+const BALL_N = 22;
+const BALL_BOX = { x: 2.6, y: 1.7, z: 1 };
+const BALL_SPACE = 1.55; // how far apart two balls like to stay, in sums of their radii
+function Balls() {
+  const group = useRef(null);
+  const inst = useRef(null);
+  const light = useRef(null);
+  const pointer = useRef(null); // in the group's own space, or null when the pointer is away
+  const [palette, setPalette] = useState(0);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const balls = useMemo(() => {
+    const r = seeded(31);
+    return Array.from({ length: BALL_N }, () => ({
+      p: new THREE.Vector3((r() * 2 - 1) * BALL_BOX.x * 0.8, (r() * 2 - 1) * BALL_BOX.y * 0.8, (r() * 2 - 1) * BALL_BOX.z),
+      v: new THREE.Vector3(),
+      size: 0.12 + r() * 0.14,
+      a: r() * Math.PI * 2,
+      b: r() * Math.PI * 2,
+    }));
+  }, []);
+  const n = useMemo(() => new THREE.Vector3(), []);
+
+  useLayoutEffect(() => {
+    paintBalls(inst.current, BALL_PALETTES[palette], BALL_N);
+    inst.current.material.needsUpdate = true;
+    if (light.current) light.current.color.set(BALL_PALETTES[palette][0]);
+  }, [palette]);
+
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 1 / 30);
+    const t = state.clock.elapsedTime;
+    const s = breath(t);
+    // The space the cloud may fill: wide on the in-breath, closer on the out-breath.
+    const room = 0.8 + 0.3 * s;
+    const grow = 0.92 + 0.12 * s;
+    const bx = BALL_BOX.x * room;
+    const by = BALL_BOX.y * room;
+    const bz = BALL_BOX.z * room;
+    const drag = Math.pow(0.5, dt);
+    for (const b of balls) {
+      // A slow, different swirl for each ball keeps the cloud alive, and a faint
+      // pull towards the middle keeps it centred.
+      b.v.x += (Math.sin(t * 0.31 + b.a) * 0.16 - b.p.x * 0.12) * dt;
+      b.v.y += (Math.cos(t * 0.27 + b.b) * 0.16 - b.p.y * 0.12) * dt;
+      b.v.z -= b.p.z * 0.12 * dt;
+      b.v.multiplyScalar(drag).clampLength(0, 1.6);
+      b.p.addScaledVector(b.v, dt);
+    }
+    for (let i = 0; i < BALL_N; i += 1) {
+      const A = balls[i];
+      const ra = A.size * grow;
+      for (let j = i + 1; j < BALL_N; j += 1) {
+        const B = balls[j];
+        const rb = B.size * grow;
+        n.subVectors(B.p, A.p);
+        const d = n.length();
+        const space = (ra + rb) * BALL_SPACE;
+        if (d <= 0 || d >= space) continue;
+        n.divideScalar(d);
+        // Inside each other's space: a gentle push apart.
+        const push = ((space - d) / space) * 1.8 * dt;
+        A.v.addScaledVector(n, -push);
+        B.v.addScaledVector(n, push);
+        // Actually touching: separate them at once.
+        if (d < ra + rb) {
+          const half = (ra + rb - d) / 2;
+          A.p.addScaledVector(n, -half);
+          B.p.addScaledVector(n, half);
+        }
+      }
+      // The pointer parts them easily: a wide reach and a firm push.
+      const q = pointer.current;
+      if (q) {
+        n.subVectors(A.p, q);
+        n.z *= 0.4;
+        const d = n.length();
+        const reach = 1.1 + ra;
+        if (d > 0 && d < reach) A.v.addScaledVector(n, ((reach - d) / reach / d) * 9 * dt * 4);
+      }
+      // Soft walls that move with the breath bring the cloud closer on the out-breath.
+      const lim = (v, m) => Math.max(-m + ra, Math.min(m - ra, v));
+      const x = lim(A.p.x, bx);
+      const y = lim(A.p.y, by);
+      const z = lim(A.p.z, bz);
+      // Bounce only while still heading outwards, so a ball never jitters at a wall.
+      if (x !== A.p.x && A.v.x * A.p.x > 0) A.v.x *= -0.6;
+      if (y !== A.p.y && A.v.y * A.p.y > 0) A.v.y *= -0.6;
+      if (z !== A.p.z && A.v.z * A.p.z > 0) A.v.z *= -0.6;
+      A.p.set(A.p.x + (x - A.p.x) * 0.2, A.p.y + (y - A.p.y) * 0.2, A.p.z + (z - A.p.z) * 0.2);
+      dummy.position.copy(A.p);
+      dummy.scale.setScalar(ra);
+      dummy.updateMatrix();
+      inst.current.setMatrixAt(i, dummy.matrix);
+    }
+    inst.current.instanceMatrix.needsUpdate = true;
+    if (light.current) {
+      const q = pointer.current;
+      light.current.position.set(q ? q.x : 0, q ? q.y : 0, 1.6);
+      light.current.intensity = 5 + 5 * s;
+    }
   });
+
+  const track = (e) => {
+    if (!group.current) return;
+    pointer.current = group.current.worldToLocal(e.point.clone());
+  };
   return (
-    <group>
+    <group
+      ref={group}
+      onClick={(e) => {
+        e.stopPropagation();
+        setPalette((k) => (k + 1) % BALL_PALETTES.length);
+      }}
+    >
+      <pointLight ref={light} intensity={6} distance={6} />
+      <instancedMesh ref={inst} args={[undefined, undefined, BALL_N]}>
+        <sphereGeometry args={[1, 28, 20]} />
+        <meshPhysicalMaterial roughness={0.22} metalness={0.15} clearcoat={1} clearcoatRoughness={0.12} />
+      </instancedMesh>
+      {/* A large invisible target, so the pointer and a tap register anywhere in the scene. */}
       <mesh
-        ref={ref}
-        onClick={(e) => {
-          e.stopPropagation();
-          setI((n) => (n + 1) % palette.length);
+        visible={false}
+        onPointerMove={track}
+        onPointerOut={() => {
+          pointer.current = null;
         }}
       >
-        <icosahedronGeometry args={[1.25, 6]} />
-        <meshPhysicalMaterial
-          ref={mat}
-          color={palette[0]}
-          emissive={palette[0]}
-          emissiveIntensity={0.25}
-          roughness={0.15}
-          clearcoat={1}
-          transparent
-          opacity={0.92}
-        />
-      </mesh>
-      <mesh ref={ring} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.25, 0.015, 8, 96]} />
-        <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.4} />
+        <planeGeometry args={[9, 6]} />
       </mesh>
     </group>
   );
@@ -688,36 +801,40 @@ function MiniParcels() {
   ));
 }
 
-// Relevia: the breathing orb, small. Its scale is set from the clock every
-// frame (never multiplied onto the last frame's value), so it cannot drift.
-function MiniOrb({ calm }) {
-  const orb = useRef(null);
-  const halo = useRef(null);
+// Relevia: a small cloud of the breathing balls. Positions are set from the
+// clock every frame (never added onto the last frame's), so they cannot drift.
+const MINI_BALLS = (() => {
+  const r = seeded(12);
+  return Array.from({ length: 9 }, (_, i) => {
+    const a = r() * Math.PI * 2;
+    const z = r() * 2 - 1;
+    const d = i === 0 ? 0 : 0.17 + r() * 0.13;
+    const k = Math.sqrt(1 - z * z);
+    return { home: new THREE.Vector3(Math.cos(a) * k * d, Math.sin(a) * k * d, z * d * 0.6), size: i === 0 ? 0.13 : 0.06 + r() * 0.05 };
+  });
+})();
+function MiniBalls({ calm }) {
+  const inst = useRef(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  useLayoutEffect(() => {
+    paintBalls(inst.current, BALL_PALETTES[0], MINI_BALLS.length);
+    inst.current.material.needsUpdate = true;
+  }, []);
   useFrame((state) => {
-    const k = calm.current;
-    const s = (0.5 - 0.5 * Math.cos((state.clock.elapsedTime / 8) * TAU)) * k;
-    orb.current.scale.setScalar(1 + s * 0.07);
-    halo.current.scale.setScalar(1 + s * 0.3);
-    halo.current.material.opacity = 0.55 - s * 0.35;
+    const s = breath(state.clock.elapsedTime) * calm.current;
+    MINI_BALLS.forEach((b, i) => {
+      dummy.position.copy(b.home).multiplyScalar(0.85 + s * 0.35);
+      dummy.scale.setScalar(b.size * (1 + s * 0.08));
+      dummy.updateMatrix();
+      inst.current.setMatrixAt(i, dummy.matrix);
+    });
+    inst.current.instanceMatrix.needsUpdate = true;
   });
   return (
-    <group>
-      <mesh ref={orb}>
-        <icosahedronGeometry args={[0.34, 5]} />
-        <meshPhysicalMaterial
-          color={COLOURS.lavender}
-          emissive={COLOURS.mauve}
-          emissiveIntensity={0.18}
-          roughness={0.22}
-          clearcoat={1}
-          clearcoatRoughness={0.25}
-        />
-      </mesh>
-      <mesh ref={halo} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.5, 0.008, 8, 96]} />
-        <meshBasicMaterial color={COLOURS.champagne} transparent opacity={0.55} />
-      </mesh>
-    </group>
+    <instancedMesh ref={inst} args={[undefined, undefined, MINI_BALLS.length]}>
+      <sphereGeometry args={[1, 20, 14]} />
+      <meshPhysicalMaterial roughness={0.22} metalness={0.15} clearcoat={1} clearcoatRoughness={0.15} />
+    </instancedMesh>
   );
 }
 
@@ -748,7 +865,7 @@ function MiniHex() {
   });
 }
 
-const MINI = [MiniSurface, MiniParcels, MiniOrb, MiniHex];
+const MINI = [MiniSurface, MiniParcels, MiniBalls, MiniHex];
 
 function ProjectNode({ p, index, focused, onFocus }) {
   const ref = useRef(null);
@@ -1281,7 +1398,7 @@ function Forest({ onInfo, params = {} }) {
 const SHAPES = {
   surface: Surface,
   parcels: Parcels,
-  orb: Orb,
+  balls: Balls,
   hex: Hex,
   crystals: Crystals,
   routing: Routing,
@@ -1289,9 +1406,9 @@ const SHAPES = {
   margin: Margin,
   forest: Forest,
 };
-const CAMERA_Z = { surface: 6.2, parcels: 6.4, orb: 5.2, hex: 5.6, crystals: 6.2, routing: 6.4, projects: 6.8, margin: 6.2, forest: 7.4 };
+const CAMERA_Z = { surface: 6.2, parcels: 6.4, balls: 5.6, hex: 5.6, crystals: 6.2, routing: 6.4, projects: 6.8, margin: 6.2, forest: 7.4 };
 
-const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0, forest: 0.05 };
+const SPIN = { surface: 0.12, routing: 0.05, margin: 0.1, projects: 0, forest: 0.05, balls: 0 };
 
 export default function Gem({ shape = "crystals", running = true, onInfo, params }) {
   const Shape = SHAPES[shape] ?? Crystals;

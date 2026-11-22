@@ -2,7 +2,6 @@ import { repoTree, repoFile } from "./site";
 import hexDashboard from "../assets/img/hexalock-dashboard.webp";
 import hexStorage from "../assets/img/hexalock-storage-stateflow.webp";
 import hexBarcode from "../assets/img/hexalock-barcode.webp";
-import releviaApp from "../assets/img/relevia-app.webp";
 import hexLocker from "../assets/img/hexalock-locker.webp";
 import bushalStore from "../assets/img/bushal-store.webp";
 import studyBuddy from "../assets/img/studybuddy-home.webp";
@@ -10,7 +9,9 @@ import hexRetrieval from "../assets/img/hexalock-retrieval-stateflow.webp";
 import sbGraphing from "../assets/img/studybuddy-graphing-2025.webp";
 import sbArchitecture from "../assets/img/studybuddy-architecture.webp";
 import releviaTools from "../assets/img/relevia-tools-2025.webp";
-import releviaCoping from "../assets/img/relevia-coping-2025.webp";
+import releviaHome2026 from "../assets/img/relevia-home-2026.webp";
+import releviaCoping2026 from "../assets/img/relevia-coping-2026.webp";
+import releviaCheckIn from "../assets/img/relevia-checkin-2026.webp";
 
 // Commits the code excerpts below were copied from, so the links never drift.
 const BUSHAL_SHA = "b518e0e8fcf90ad4dabd493076d82b6c5cf990cc";
@@ -267,7 +268,12 @@ FOR UPDATE;`,
     repo: "relevia",
     title: "Relevia",
     tagline: "A supportive chat that keeps your words on your device",
-    cover: { src: releviaApp, alt: "Relevia home screen with breathing, grounding and chat tools", w: 1440, h: 900 },
+    cover: {
+      src: releviaHome2026,
+      alt: "Relevia's home page in a paper-and-crayon style: “A quiet page to put things down”, with a crayon drawing of two people on a bench under a tree",
+      w: 1440,
+      h: 900,
+    },
     kind: "Privacy-aware web app · research testbed",
     status: "Active prototype",
     period: "April 2025 – present",
@@ -275,24 +281,35 @@ FOR UPDATE;`,
       "A React app with breathing and grounding tools and a supportive chat that runs a language model on the user's own device through WebLLM. It is also the testbed for my Relevia research.",
     sparkFigures: [
       {
+        src: releviaCoping2026,
+        alt: "Relevia's coping techniques page in the paper-and-crayon redesign, with breathing and grounding exercises",
+        caption: "The coping page after the November 2026 redesign. Its fixed exercises need no model at all.",
+        width: 1440,
+        height: 900,
+      },
+      {
+        src: releviaCheckIn,
+        alt: "Relevia's chat. The message “i'm so done with everything” gets a fixed check-in reply asking whether anyone is in immediate danger, while the status line reads “Getting the AI ready, 0%”",
+        caption: "An ambiguous message gets a check-in question from the S3 rules while the model has not even started loading.",
+        width: 460,
+        height: 636,
+      },
+      {
         src: releviaTools,
         alt: "Relevia techniques page with deep breathing, mindfulness, progressive relaxation, visualisation, affirmations, physical activity and journaling",
-        caption: "The calming tools the chat sits beside, in an earlier version of the app (2025).",
+        caption: "The same tools in the earlier version of the app (2025).",
         width: 1600,
         height: 795,
       },
-      {
-        src: releviaCoping,
-        alt: "Relevia coping techniques page with a Start Breathing Exercise button for quick relief",
-        caption: "The coping page in the same earlier version. Its fixed exercises need no model at all.",
-        width: 1600,
-        height: 781,
-      },
     ],
-    scene: { shape: "orb", hint: "Breathe with it: in while it grows, out while it settles. Tap to change its colour." },
+    scene: {
+      shape: "balls",
+      hint: "The floating balls from Relevia's breathing page. Breathe in as they drift apart, out as they gather. Move through them to push them aside; tap to change their colour.",
+    },
     spark: [
       "Relevia starts from a question: when someone types something painful into a chat, where do those words go? Running the model locally, in the browser, means the conversation never reaches an inference server.",
       "But local is not the same as private. An earlier version shared chat history between sessions, expired data inconsistently and described its privacy more confidently than the code justified. So the real goal became: make every privacy and safety property something the implementation guarantees, not something the interface claims.",
+      "Safety went the same way. The rules that read each message now send an emergency to a fixed message that names emergency numbers, and a second set of rules checks what the model writes before any of it reaches the screen. Each fix showed me something wrong with the one before; the research story tells that part.",
     ],
     thinking: [
       {
@@ -305,7 +322,13 @@ FOR UPDATE;`,
         question: "What happens before the model sees a message?",
         options: ["Send everything to the model", "Check for crisis language first and route it"],
         chose: 1,
-        why: "A small model cannot be trusted to handle an emergency. Recognised crisis language is routed to fixed, safe responses before inference. Those rules are the S2 detector from my research, measured on held-out cases.",
+        why: "A small model cannot be trusted to handle an emergency. The S3 rules read each message, and the last few turns, before inference. An emergency already under way gets a fixed message naming 999, 112 and 911; urgent risk gets a fixed support reply; an ambiguous message gets a question. On test messages frozen before S3 was written it caught 43 of 46 urgent ones, but the same coding agent wrote those messages and the rules, so it is development evidence, not validation.",
+      },
+      {
+        question: "When may a reply appear on screen?",
+        options: ["Show every word as the model writes it", "Show only finished sentences that have passed the reply guard"],
+        chose: 1,
+        why: "A check that runs after the text is on screen is too late. The guard (G3) holds each sentence until it is finished and checked, so text that would be removed is never shown. The cost is real: in a simulation at my laptop's measured speed, the median wait before the first words rose from 0.23 to 2.55 seconds.",
       },
       {
         question: "Which model, on which device?",
@@ -315,6 +338,23 @@ FOR UPDATE;`,
       },
     ],
     pushback: [
+      {
+        title: "The check that came too late",
+        expected: "A guard on the model's reply stops unsafe text from being shown.",
+        observed:
+          "The first guard checked the text after every streamed chunk, so half a refusal could already be on screen. The second showed the unfinished sentence when it looked harmless, and “Child” passed before it grew into “Childline”, which the guard removes.",
+        found: "The rule was right; it just ran after the person had already read the words.",
+        changed:
+          "G3 shows only finished sentences that have passed the check. Every reply now waits for its first full sentence, a trade-off I have written up as a study and not yet measured.",
+      },
+      {
+        title: "The GPU the browser chose",
+        expected: "On a laptop with an RTX 4060, the model runs on the RTX 4060.",
+        observed: "The first browser benchmark ran on the integrated Intel GPU, at about 5.6 tokens a second.",
+        found: "The operating system and the browser choose the graphics adapter, not the page.",
+        changed:
+          "The app recognises integrated Intel graphics, starts it on the 1B model and logs how to switch the browser to the dedicated GPU in Windows settings. The benchmark records which GPU it ran on.",
+      },
       {
         title: "Six gigabytes before the first hello",
         expected: "A visitor can start talking within moments.",
@@ -342,19 +382,24 @@ FOR UPDATE;`,
       },
     ],
     checked:
-      "18 synthetic JavaScript tests cover storage, retention and deletion (as recorded in my research milestones). It has not been measured on real devices for download size, latency or memory, and it has not been clinically evaluated.",
+      "On 8 November 2026 its 144 automated tests passed, 54 of them for S3 and 28 for the reply guard, as my Milestone 4.1 report records. One browser benchmark has run, on one laptop. The emergency wording has not been reviewed by a qualified person, and the app has not been clinically evaluated.",
     limitations: [
-      "Saved chats are not encrypted and there is no sign-in; anyone using the same browser profile can open them.",
-      "A missed risk detection can leave sensitive text in an opted-in chat.",
-      "No real-device measurements yet for download size, latency or memory.",
+      "Saved chats and kept journal entries are not encrypted and there is no sign-in; anyone using the same browser profile can open them.",
+      "The safety rules are keyword patterns, mostly in English. A missed risk detection can leave sensitive text in an opted-in chat, and the model can still reply badly to it.",
+      "Every reply now waits for its first checked sentence.",
+      "The medication page is general information with sources. It has not been reviewed by a clinician.",
+      "Browser speed is measured on one laptop only.",
       "Not clinically evaluated. It is not a substitute for professional care or emergency services.",
     ],
-    future: ["Real-device WebLLM benchmarks", "Broader safety coverage"],
+    future: [
+      "A safety test set written by someone else",
+      "Emergency wording reviewed by a qualified person",
+      "Browser measurements on more devices",
+    ],
     tech: ["React", "Vite", "WebLLM", "WebGPU", "Web Workers", "localStorage (opt-in)", "Node test runner"],
     contribution: "Individual project. Recent changes are agent-assisted and reviewed by me, as the README states.",
     links: [
       { label: "Repository", href: repoTree("relevia") },
-      { label: "Live prototype", href: "https://bushrakhandoker708.github.io/relevia/" },
       { label: "The research behind it", href: "/research/relevia", internal: true },
     ],
   },

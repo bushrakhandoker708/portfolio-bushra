@@ -18,7 +18,8 @@ describe("every route renders", () => {
     expect(h1).toHaveLength(1);
     expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main");
     expect(screen.getByRole("main")).toBeInTheDocument();
-  });
+    // The Relevia research page is long; jsdom's role queries over it take several seconds.
+  }, 15000);
 
   it("unknown routes and unknown project slugs show the 404 page", async () => {
     renderAt("/nope");

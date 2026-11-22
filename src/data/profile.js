@@ -38,19 +38,21 @@ export const interests = [
 // What the evidence shows Bushra is actively investigating right now.
 export const currentInvestigations = [
   {
-    title: "Prompting versus adaptation for small language models",
+    title: "When a streamed reply may be shown",
     detail:
-      "Whether a carefully developed prompt changes supportive-dialogue quality on a pinned 1.5B-parameter model, before testing parameter-efficient adaptation under the same prompt.",
-    href: "/research/relevia#experiment",
+      "Checking only finished sentences stopped unsafe text reaching the screen and made every reply wait. A study design compares four release policies for both; it has not been run.",
+    href: "/research/relevia#release",
   },
   {
     title: "Evaluating safety routing honestly",
-    detail: "Measuring rule-based risk detection on held-out cases frozen before the detector was written, including the misses.",
-    href: "/research/relevia#safety",
+    detail:
+      "Measuring rule-based risk detection on test messages frozen before each version was written, including the emergencies an earlier version missed entirely.",
+    href: "/research/relevia#emergency",
   },
   {
     title: "What local inference actually costs",
-    detail: "Separating time-to-first-token, decode rate and response length, and documenting host confounds such as system standby.",
-    href: "/research/relevia#latency",
+    detail:
+      "Separating time to first token, decode rate and reply length, from Python on a CPU to one browser run, and documenting confounds such as system standby and the GPU the browser picks.",
+    href: "/research/relevia#cost",
   },
 ];

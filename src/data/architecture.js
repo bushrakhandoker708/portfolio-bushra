@@ -1,5 +1,6 @@
 /*
- * Interactive architecture maps for the project pages (components/ArchitectureMap.jsx).
+ * Interactive architecture maps for the project pages and the Relevia research
+ * page (components/ArchitectureMap.jsx).
  *
  * Every part, file path and link here was read from the repository at the
  * commit named in `commit`; nothing comes from design documents alone. Where
@@ -7,10 +8,17 @@
  * marked (state: "placeholder" or "retired").
  */
 
+// The research repository is pinned once, with the evidence links on its story page.
+import { RESEARCH_COMMIT } from "./research";
+
+// The wine-quality study is one notebook; its parts are sections of it.
+const WINE = "56da665b4fe1af04eab4fefb54d698e66b9b2e6a";
+const NB = "wine_quality_classification.ipynb";
+
 const STUDYBUDDY = "4de5332ca0067782b3ffbdd60dd0f5830676fac5";
 const STUDYBUDDY_PYODIDE = "2de20784301e72bb015e18ea1437aa562c82ceea";
 const BUSHAL = "b518e0e8fcf90ad4dabd493076d82b6c5cf990cc";
-const RELEVIA = "0b8df47ec0b1495dfb2b8954408fce2b8918408f";
+const RELEVIA = "7c9040a235404ea84826ca4a1f4f457961b459f7";
 const HEXALOCK = "c4fac2d03d59c598559fd0eac9d240709da58401";
 
 export const architectures = {
@@ -388,7 +396,7 @@ export const architectures = {
         label: "Chat window",
         files: ["src/components/Chatbot.jsx"],
         detail:
-          "Where the conversation happens. Replies stream in token by token, and while the model downloads the window says how far it has got.",
+          "Where the conversation happens. A reply appears a sentence at a time, once each sentence has been checked, and while the model downloads the window says how far it has got.",
       },
       {
         id: "coping",
@@ -412,15 +420,23 @@ export const architectures = {
         label: "think()",
         files: ["src/services/releviaBrain.js"],
         detail:
-          "Decides how each message is answered: the safety check first, then the recent history, then the model if it is ready within 4 seconds, and otherwise an offline reply.",
+          "Decides how each message is answered: the safety router first, then the recent history, then the model if it is ready within 4 seconds, with the reply guard on everything it writes, and otherwise an offline reply.",
+      },
+      {
+        id: "guard",
+        layer: "core",
+        label: "Reply guard (G3)",
+        files: ["src/services/replyGuard.js", "src/services/releasePolicy.js", "tests/reply-guard.test.js", "tests/release-policy.test.js"],
+        detail:
+          "Checks what the model writes, because routing only reads the user. While a reply streams, only finished sentences that pass are shown (release policy R2). At the end, a refusal to talk about a death or feelings is replaced, and an unverified phone number or service is removed. Keyword rules: they do not understand meaning.",
       },
       {
         id: "safety",
         layer: "checks",
-        label: "Safety router (S2)",
-        files: ["src/services/safety.js", "tests/safety-s2.test.js"],
+        label: "Safety router (S3)",
+        files: ["src/services/safetyS3.js", "src/services/safety.js", "tests/safety-s3.test.js"],
         detail:
-          "Normalises the text and checks it for crisis language before anything else. A match returns a fixed urgent-support reply, and the model is never called. These are the S2 rules measured in my research.",
+          "Reads every message, with the last few turns, before anything else. Something already taken or done gets a fixed emergency message naming 999, 112 and 911; urgent risk gets a fixed urgent-support reply; an ambiguous message gets a check-in question. In all three the model is never called. S3 builds on the S2 text normalisation in safety.js; both are measured in my research.",
       },
       {
         id: "offline",
@@ -428,6 +444,14 @@ export const architectures = {
         label: "Offline replies",
         files: ["src/services/memoryUtils.js"],
         detail: "Tone detection and prepared replies, used while the model is still loading or if it fails.",
+      },
+      {
+        id: "journal",
+        layer: "checks",
+        label: "Journal store",
+        files: ["src/services/journalStore.js", "src/components/CopingTechniques/Journaling.jsx"],
+        detail:
+          "Journal entries, the draft and settings stay in memory until the person chooses “Keep on this device”. Only then are they written to localStorage, and every write reports whether it worked.",
       },
       {
         id: "chooser",
@@ -473,6 +497,9 @@ export const architectures = {
     ],
     edges: [
       { from: "chat", to: "brain", label: "each message" },
+      { from: "coping", to: "journal", label: "journal entries" },
+      { from: "brain", to: "guard", label: "every streamed piece, then the whole reply" },
+      { from: "guard", to: "chat", label: "only checked sentences" },
       { from: "privacy", to: "store", label: "turns saving on or off; deletes" },
       { from: "brain", to: "safety", label: "checks every message first" },
       { from: "brain", to: "store", label: "reads recent turns; marks a chat sensitive" },
@@ -494,22 +521,38 @@ export const architectures = {
           { node: "store", text: "The last few turns are read from memory." },
           { node: "brain", text: "The prompt goes to the model." },
           { node: "worker", text: "The model writes a reply on the GPU, up to 110 tokens." },
-          { node: "chat", text: "The reply streams into the window as it is written." },
+          { node: "guard", text: "As it streams, only finished sentences that pass the check are let through." },
+          { node: "chat", text: "The reply appears a sentence at a time." },
+          { node: "guard", text: "The whole reply is checked once more before it is kept." },
         ],
       },
       {
         id: "crisis",
-        label: "A message with crisis language",
+        label: "A message about an emergency",
         steps: [
-          { node: "chat", text: "A message contains crisis language." },
-          { node: "brain", text: "think() runs the safety check before anything else." },
-          { node: "safety", text: "A match. A fixed urgent-support reply is returned, and the model is never called." },
+          { node: "chat", text: "A message says something has already been taken." },
+          { node: "brain", text: "think() runs the safety router before anything else, with the last few turns." },
+          { node: "safety", text: "S3 finds an emergency. A fixed message is chosen, and the model is never called." },
           { node: "brain", text: "Before replying, it records the turn." },
           { node: "store", text: "The chat is marked sensitive, so it will not be saved, even if saving was on." },
           {
             node: "chat",
-            text: "The fixed reply is shown: it says plainly that it is an AI and cannot keep anyone safe, and points to emergency services and, in the UK, Samaritans.",
+            text: "The fixed message is shown: call 999 in the UK, 112 in the EU, 911 in the US and Canada; say what was taken and keep the packet. It says it is an AI and cannot call anyone.",
           },
+        ],
+      },
+      {
+        id: "ambiguous",
+        label: "An ambiguous message",
+        steps: [
+          { node: "chat", text: "A message could mean distress or danger, and it is not clear which." },
+          { node: "brain", text: "think() runs the safety router first." },
+          {
+            node: "safety",
+            text: "Not clearly urgent and not clearly fine, so S3 asks instead of assuming: is anyone in immediate danger?",
+          },
+          { node: "store", text: "The chat is marked sensitive and will not be saved." },
+          { node: "chat", text: "The check-in question is shown, even while the model is still downloading." },
         ],
       },
       {
@@ -526,6 +569,458 @@ export const architectures = {
           { node: "weights", text: "The files are downloaded once and cached by the browser." },
           { node: "brain", text: "Messages sent meanwhile do not wait for it." },
           { node: "offline", text: "They get offline replies that say how far the download has got." },
+        ],
+      },
+    ],
+  },
+
+  // Not a project story: the map on the Relevia research page.
+  "relevia-research": {
+    repo: "relevia-research",
+    commit: RESEARCH_COMMIT,
+    stateLabels: { external: "Runs in the app", planned: "Not run yet" },
+    layers: [
+      { id: "inputs", label: "Data and frozen inputs" },
+      { id: "runs", label: "Runs" },
+      { id: "checks", label: "Safety and release checks" },
+      { id: "record", label: "Analysis and record" },
+    ],
+    nodes: [
+      {
+        id: "partitions",
+        layer: "inputs",
+        label: "Conversation partitions",
+        files: ["data/build_dataset.py", "src/splits.py", "scripts/check_leakage.py"],
+        detail:
+          "Splits EmpatheticDialogues by whole conversation into train, development, few-shot, validation and two test sets, and fails if any conversation lands in two of them. The dataset is CC BY-NC 4.0, so it is never committed.",
+      },
+      {
+        id: "scenarios",
+        layer: "inputs",
+        label: "Synthetic scenarios",
+        files: ["data/experiment_01/", "data/experiment_01_expanded/"],
+        detail:
+          "The prompting study's inputs: short supportive-dialogue scenarios written for it, released as CC0 and reviewed by a coding agent, not by clinicians. The runner rejects any file outside the reviewed folder, and any row without that record.",
+      },
+      {
+        id: "freeze",
+        layer: "inputs",
+        label: "Frozen configuration",
+        files: ["configs/experiment_01.freeze.json", "configs/expanded.freeze.json", "configs/prompts.yaml"],
+        detail:
+          "The model revision, prompts A and B, the rubric and the runner, hashed before any test output exists. A run stops if any frozen file has changed.",
+      },
+      {
+        id: "safetysets",
+        layer: "inputs",
+        label: "Frozen safety sets",
+        files: ["data/safety_v3/", "data/safety_v4/"],
+        detail:
+          "Urgent, ordinary and ambiguous test messages, each set hashed before the rules it tests were written. The same coding agent wrote the messages and the rules, so they are development evidence.",
+      },
+      {
+        id: "runner",
+        layer: "runs",
+        label: "Paired runner",
+        files: ["scripts/experiment_01.py", "scripts/controlled_inference.py"],
+        detail:
+          "Generates prompt A and prompt B for every scenario on the pinned Qwen2.5-1.5B, offline on the CPU, with the same seed and greedy decoding, and records time to first token, decode rate and token counts. It never trains.",
+      },
+      {
+        id: "lora",
+        layer: "runs",
+        label: "LoRA pilot",
+        state: "planned",
+        files: ["scripts/lora_pilot.py", "results/lora/smoke-v1/"],
+        detail:
+          "Condition C: the same base model and prompt B plus an adapter, trained only on the audited partitions. The real pilot refuses to start without my recorded approval; only a four-step smoke test of the pipeline has run.",
+      },
+      {
+        id: "browser",
+        layer: "runs",
+        label: "Browser benchmark",
+        state: "external",
+        files: ["docs/browser_benchmark_protocol.md", "results/performance/browser-v1-intel/"],
+        detail:
+          "The harness lives in the app and is not imported by the public chat. It times Llama-3.2-1B in WebLLM from start-up to the last streamed chunk, with a fixed synthetic input. One run so far, on one laptop's integrated GPU; its report is kept here.",
+      },
+      {
+        id: "detectors",
+        layer: "checks",
+        label: "Frozen detectors",
+        files: ["detectors/README.md", "detectors/s2/", "detectors/s3/"],
+        detail:
+          "Copies of the app's routing rules at each freeze, byte for byte apart from one import path, so an old result can still be reproduced after the app moves on. The code of S3's first run was not saved; its hash and outputs are the record.",
+      },
+      {
+        id: "evaluate",
+        layer: "checks",
+        label: "Routing evaluation",
+        files: ["scripts/evaluate_safety_s2.mjs", "scripts/evaluate_safety_s3.mjs"],
+        detail:
+          "Runs every version of the rules over a frozen set and writes confusion matrices with Wilson intervals. A rule changed after its first held-out run is reported as post hoc, never quietly re-run.",
+      },
+      {
+        id: "scan",
+        layer: "checks",
+        label: "Over-routing scan",
+        files: ["scripts/scan_s3_false_alarms.mjs"],
+        detail:
+          "Runs S3 over human-written EmpatheticDialogues prompts it was not tuned on and keeps only IDs and counts. It finds false alarms; it cannot find missed risk.",
+      },
+      {
+        id: "guardaudit",
+        layer: "checks",
+        label: "Reply-guard audit",
+        files: ["scripts/audit_reply_guard.mjs", "detectors/guard_g2/"],
+        detail:
+          "Runs G1, G2 and the app's G3 over all 218 saved model replies, and streams each reply word by word to measure how long text is held back. The replies were read while the guard was written, so this is development evidence.",
+      },
+      {
+        id: "replay",
+        layer: "checks",
+        label: "Release replay",
+        files: ["scripts/simulate_traces.mjs", "scripts/replay_release.mjs", "detectors/release_v1/"],
+        detail:
+          "Sends the same reply streams through release policies R0 to R3 and measures what a person would have seen, and when. Measuring unsafe text on screen needs labelled spans, which do not exist yet.",
+      },
+      {
+        id: "analysis",
+        layer: "record",
+        label: "Paired analysis",
+        files: ["scripts/analyse_experiment_01.py", "scripts/analyse_robustness.py"],
+        detail:
+          "Group-bootstrap intervals for paired differences, Wilson intervals for proportions, and the robustness checks that found the standby confound. A missing rating is never filled in.",
+      },
+      {
+        id: "review",
+        layer: "record",
+        label: "Independent review",
+        state: "planned",
+        files: ["scripts/prepare_independent_review.py", "scripts/analyse_independent_ratings.py"],
+        detail:
+          "Exports two blank rating packets, each shuffled separately, and analyses only the scores that come back. None have yet: 0 of 120 replies are rated.",
+      },
+      {
+        id: "results",
+        layer: "record",
+        label: "Results and claims",
+        files: ["results/", "paper/claim_evidence_matrix.md"],
+        detail:
+          "Every number on this site is copied from a file here at a pinned commit, and the claim–evidence matrix ties each claim to its file.",
+      },
+      {
+        id: "privacy",
+        layer: "record",
+        label: "Privacy scan",
+        files: ["scripts/privacy_scan.py", ".githooks/pre-commit"],
+        detail:
+          "Checks staged changes and every tracked file for credentials and personal details, before each commit and in CI. A pass is not proof that nothing private remains.",
+      },
+    ],
+    edges: [
+      { from: "scenarios", to: "runner", label: "only the reviewed folder" },
+      { from: "freeze", to: "runner", label: "stops if a hash has changed" },
+      { from: "partitions", to: "lora", label: "trains on audited partitions only" },
+      { from: "lora", to: "runner", label: "condition C, once trained" },
+      { from: "runner", to: "analysis", label: "paired replies and timings" },
+      { from: "runner", to: "review", label: "replies to rate" },
+      { from: "review", to: "analysis", label: "scores, when they come back" },
+      { from: "runner", to: "guardaudit", label: "saved replies" },
+      { from: "safetysets", to: "evaluate", label: "frozen messages" },
+      { from: "detectors", to: "evaluate", label: "the rules under test" },
+      { from: "detectors", to: "scan", label: "S3" },
+      { from: "browser", to: "replay", label: "the measured decode rate" },
+      { from: "guardaudit", to: "replay", label: "G3, frozen" },
+      { from: "evaluate", to: "results", label: "matrices and intervals" },
+      { from: "scan", to: "results", label: "IDs and counts only" },
+      { from: "replay", to: "results", label: "waiting times" },
+      { from: "analysis", to: "results", label: "intervals" },
+      { from: "privacy", to: "results", label: "checks every commit" },
+    ],
+    flows: [
+      {
+        id: "prompting",
+        label: "A prompting comparison",
+        steps: [
+          {
+            node: "freeze",
+            text: "Before any test output exists, the model revision, both prompts, the rubric and the runner are hashed.",
+          },
+          { node: "scenarios", text: "The held-out scenarios are read from the one reviewed folder; anything else is refused." },
+          {
+            node: "runner",
+            text: "A and B are generated for every scenario on the same pinned model, seed and decoding, with every timing recorded.",
+          },
+          {
+            node: "analysis",
+            text: "On 8 scenarios, relevance differed by +0.125, from −0.875 to +1.125: no evidence either way, from an agent that knew which prompt was which.",
+          },
+          {
+            node: "analysis",
+            text: "In the 60-pair timing run, two pairs ran while the laptop was in standby. Without them, B's 19-second lead shrinks to about 3.",
+          },
+          {
+            node: "review",
+            text: "Blank packets for two human raters, each shuffled separately. None have come back: 0 of 120 replies are rated.",
+          },
+          { node: "results", text: "The inconclusive result is committed as it is, with the hashes of everything that produced it." },
+        ],
+      },
+      {
+        id: "rule",
+        label: "Testing a new safety rule",
+        steps: [
+          { node: "safetysets", text: "New urgent, ordinary and ambiguous messages are written and hashed before the new rule exists." },
+          { node: "detectors", text: "The new rules are copied from the app, byte for byte, into a folder of their own." },
+          {
+            node: "evaluate",
+            text: "Every version runs over the frozen set. On its first run, S3 caught 43 of 46 urgent messages; later fixes count as post hoc.",
+          },
+          { node: "scan", text: "S3 then reads 2,873 human-written prompts it was never tuned on, and raises one false alarm." },
+          {
+            node: "results",
+            text: "Matrices, intervals and misses are committed, with the caveat that one coding agent wrote both the messages and the rules.",
+          },
+        ],
+      },
+      {
+        id: "release",
+        label: "When may a reply be shown?",
+        steps: [
+          { node: "runner", text: "The saved model replies are the starting material." },
+          {
+            node: "guardaudit",
+            text: "G1, G2 and G3 run over all 218 replies. Streamed word by word, G3 holds the first text back to a median of 2.55 s.",
+          },
+          { node: "browser", text: "The one browser run supplies a real decode rate: about 5.6 tokens a second." },
+          {
+            node: "replay",
+            text: "Simulated streams at that rate go through R0 to R3. With no labelled unsafe spans, only the waiting can be measured.",
+          },
+          { node: "results", text: "The study protocol fixes in advance the result that would reject my own proposed policy." },
+        ],
+      },
+    ],
+  },
+
+  // Not a project story: the map on the ML Lab's wine-quality page.
+  "wine-quality": {
+    repo: "wine-quality-classification",
+    commit: WINE,
+    modelFile: NB,
+    note: "The whole study is one notebook, so each part names the notebook section it lives in.",
+    layers: [
+      { id: "data", label: "Data" },
+      { id: "protocol", label: "The shared protocol" },
+      { id: "models", label: "Models" },
+      { id: "evaluation", label: "Evaluation" },
+    ],
+    nodes: [
+      {
+        id: "csv",
+        layer: "data",
+        label: "White-wine data",
+        files: ["winequality-white.csv", "winequality.names"],
+        detail:
+          "4,898 Portuguese Vinho Verde white wines from the UCI repository, each with 11 lab measurements and a quality score: the median of at least three experts' grades from 0 to 10.",
+      },
+      {
+        id: "label",
+        layer: "data",
+        label: "Good or poor",
+        where: ["§5 Create a binary target"],
+        detail:
+          "Scores of 6 and above become 'good', the rest 'poor', so about two wines in three are good. The cost is written down: a 6 and a 9 now get the same label.",
+      },
+      {
+        id: "dedupe",
+        layer: "data",
+        label: "Duplicates removed",
+        where: ["§6 iii Class imbalance and duplicates"],
+        detail:
+          "937 rows are exact copies. Keeping them could put the same wine on both sides of the split, so they go and 3,961 remain. No identical measurements carry different labels, and the class balance barely moves.",
+      },
+      {
+        id: "eda",
+        layer: "data",
+        label: "Exploratory checks",
+        where: ["§6 i Kernel density estimation", "§6 ii Correlation analysis"],
+        detail:
+          "Density plots and correlations with the label. Alcohol is the strongest (0.40 without duplicates). The correlations were first computed on all rows, then checked again once the duplicates were gone.",
+      },
+      {
+        id: "split",
+        layer: "protocol",
+        label: "Stratified split",
+        where: ["§7 Train-test split"],
+        detail:
+          "70% to learn from, 30% held out, stratified by class: 2,772 and 1,189 wines, with poor-quality shares 0.04 points apart. The notebook asserts that no row is in both.",
+      },
+      {
+        id: "pipeline",
+        layer: "protocol",
+        label: "Scaler inside the pipeline",
+        where: ["§8 Model implementation"],
+        detail:
+          "Every model is a pipeline of a StandardScaler and the classifier, so during tuning the scaler is refitted on the training folds alone and held-out data never shapes the scaling.",
+      },
+      {
+        id: "cv",
+        layer: "protocol",
+        label: "Five-fold tuning",
+        where: ["§8.1 k-NN (the folds)", "§8.2 SVM (the same folds, reused)"],
+        detail:
+          "Stratified five-fold cross-validation with a fixed seed, the same folds for k-NN and the SVM, scored on F1 for the good class. Balanced accuracy and poor-class recall are reported beside it.",
+      },
+      {
+        id: "knn",
+        layer: "models",
+        label: "k-nearest neighbours",
+        where: ["§8.1 k-NN"],
+        detail:
+          "Classifies a wine by its nearest neighbours in the training data. k from 1 to 20 was tried; k = 13 won, with a mean CV F1 of 0.8276.",
+      },
+      {
+        id: "svm",
+        layer: "models",
+        label: "Support vector machine",
+        where: ["§8.2 SVM"],
+        detail:
+          "35 settings across linear, polynomial and RBF kernels. The RBF kernel with C = 1 and gamma = 0.1 won at a mean CV F1 of 0.8333, 0.0058 ahead of k-NN: less than the fold-to-fold spread.",
+      },
+      {
+        id: "lda",
+        layer: "models",
+        label: "Linear discriminant analysis",
+        where: ["§8.3 LDA"],
+        detail:
+          "One Gaussian per class with a shared covariance, so the boundary is a plane. Nothing was tuned; five-fold CV gives F1 0.8218 but finds only 52% of the poor wines.",
+      },
+      {
+        id: "boundaries",
+        layer: "models",
+        label: "Two-feature pictures",
+        where: ["§7 Helper: two-feature decision-boundary plot", "§8.3 LDA prior visualisation"],
+        detail:
+          "Copies of each model refitted on alcohol and volatile acidity alone, with the 11-feature settings, so the boundaries can be drawn. They illustrate; their accuracies are not the results.",
+      },
+      {
+        id: "baseline",
+        layer: "evaluation",
+        label: "Majority baseline",
+        where: ["§9 Model evaluation on the test set"],
+        detail:
+          "Always answers 'good'. It reaches 65.94% accuracy and an F1 of 0.7947 without finding a single poor wine, which is why F1 alone is never the headline.",
+      },
+      {
+        id: "test",
+        layer: "evaluation",
+        label: "Test-set scores",
+        files: ["assets/confusion-matrices.png"],
+        where: ["§9 Model evaluation on the test set"],
+        detail:
+          "The held-out wines are scored once, for every model, on accuracy, precision, recall, F1, poor-class recall and balanced accuracy, with a confusion matrix each. The RBF SVM is the best of the three on every measure except good-class recall.",
+      },
+      {
+        id: "curves",
+        layer: "evaluation",
+        label: "ROC and precision–recall",
+        files: ["assets/roc-pr-curves.png"],
+        where: ["§9 ROC and precision-recall curves"],
+        detail:
+          "Threshold-free comparison on the same test set: ROC AUC 0.83 for the RBF SVM, 0.81 for k-NN and 0.80 for LDA; average precision 0.90, 0.87 and 0.88.",
+      },
+      {
+        id: "errors",
+        layer: "evaluation",
+        label: "Errors by original score",
+        where: ["§9 SVM error analysis by original quality score"],
+        detail:
+          "The RBF SVM's test errors grouped by the score each wine had before the cut. They gather at the boundary: 43% of the 5s and 18% of the 6s are wrong, against under 1% of the 7s.",
+      },
+      {
+        id: "cost",
+        layer: "evaluation",
+        label: "Overfitting and cost",
+        where: ["§9 Overfitting check and computational cost"],
+        detail:
+          "Training against test accuracy, and the fastest of five timed runs on one machine. LDA barely overfits (a 0.2-point gap); the RBF SVM takes about 157 ms to fit, against under 7 ms for the others.",
+      },
+    ],
+    edges: [
+      { from: "csv", to: "label", label: "scores cut at 6" },
+      { from: "label", to: "dedupe", label: "4,898 rows" },
+      { from: "dedupe", to: "eda", label: "correlations checked again" },
+      { from: "dedupe", to: "split", label: "3,961 wines" },
+      { from: "split", to: "pipeline", label: "2,772 training wines only" },
+      { from: "pipeline", to: "cv", label: "scaler refitted in every fold" },
+      { from: "cv", to: "knn", label: "k = 1 to 20" },
+      { from: "cv", to: "svm", label: "three kernels" },
+      { from: "cv", to: "lda", label: "scored; nothing to tune" },
+      { from: "eda", to: "boundaries", label: "the two features drawn" },
+      { from: "svm", to: "boundaries", label: "the same settings" },
+      { from: "lda", to: "boundaries", label: "fitted and equal priors" },
+      { from: "split", to: "baseline", label: "the training majority" },
+      { from: "split", to: "test", label: "1,189 held-out wines" },
+      { from: "baseline", to: "test", label: "the score to beat" },
+      { from: "knn", to: "test", label: "k = 13" },
+      { from: "svm", to: "test", label: "RBF, C = 1, gamma = 0.1" },
+      { from: "lda", to: "test", label: "fitted on all training wines" },
+      { from: "test", to: "curves", label: "without a threshold" },
+      { from: "svm", to: "errors", label: "the selected model" },
+      { from: "test", to: "cost", label: "training vs test accuracy" },
+    ],
+    flows: [
+      {
+        id: "label",
+        label: "From a tasting score to a label",
+        steps: [
+          { node: "csv", text: "4,898 white wines, each with 11 lab measurements and a score from expert tasters." },
+          { node: "label", text: "Scores of 6 and above become 'good', the rest 'poor': about two wines in three are good." },
+          { node: "dedupe", text: "937 rows are exact copies. They go, so no wine can sit on both sides of the split: 3,961 remain." },
+          { node: "split", text: "A stratified 70/30 split: 2,772 wines to learn from and 1,189 locked away until the end." },
+        ],
+      },
+      {
+        id: "tuning",
+        label: "Tuning without peeking",
+        steps: [
+          { node: "split", text: "From here until the final scores, only the 2,772 training wines are used." },
+          {
+            node: "pipeline",
+            text: "The scaler sits inside each model's pipeline, so it learns means and spreads from the training folds alone.",
+          },
+          { node: "cv", text: "Five stratified folds, the same for every model, each scored on F1." },
+          { node: "svm", text: "35 SVM settings are tried. RBF wins, 0.0058 ahead of k-NN: a gap smaller than the spread between folds." },
+          { node: "test", text: "Only now are the held-out wines opened: 77.46% accuracy for the RBF SVM." },
+        ],
+      },
+      {
+        id: "good",
+        label: "Is 77% any good?",
+        steps: [
+          { node: "baseline", text: "Always saying 'good' already scores 65.94%, and finds no poor wine at all." },
+          {
+            node: "test",
+            text: "So balanced accuracy and poor-class recall sit beside F1: 0.73 and 58% for the RBF SVM, the best of the three.",
+          },
+          { node: "curves", text: "Without a threshold the SVM still ranks wines best: ROC AUC 0.83, against 0.81 and 0.80." },
+          { node: "errors", text: "Its errors gather at the cut: 43% of the 5s and 18% of the 6s are wrong, under 1% of the 7s." },
+          { node: "cost", text: "And it is the slowest, about 157 ms to fit against under 7 ms for the others, on one machine." },
+        ],
+      },
+      {
+        id: "lda",
+        label: "Why LDA misses poor wines",
+        steps: [
+          { node: "cv", text: "LDA has nothing to tune, so the folds only score it." },
+          { node: "lda", text: "F1 is a respectable 0.82, but it finds only 52% of the poor wines." },
+          {
+            node: "boundaries",
+            text: "Drawn on two features, its boundary leans towards the poor class, because the priors are 0.34 and 0.66.",
+          },
+          { node: "boundaries", text: "With equal priors, that two-feature model finds 69.4% of the poor test wines instead of 49.6%." },
         ],
       },
     ],

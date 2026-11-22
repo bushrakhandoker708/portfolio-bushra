@@ -76,21 +76,21 @@ function Hero() {
 
 /** The opening hook: the question behind the research, told as three short beats. */
 function AtAGlance() {
-  const s2 = relevia.safety.detectors.find((d) => d.id === "S2");
-  const rel = relevia.pilot.dimensions[0];
-  const missed = relevia.safety.urgent - s2.tp;
+  const v4 = relevia.safetyV4;
+  const s3 = v4.detectors.find((d) => d.id === "S3");
+  const [g2, g3] = relevia.guard.rows;
   const beats = [
     {
       title: "Keep the words on the device",
       text: "So I run a small language model inside the browser. That is where the hard part starts: a model small enough to fit there is also small enough to get things wrong.",
     },
     {
-      title: "Build the test before trusting it",
-      text: "Before comparing anything, I froze the configurations, separated the data by conversation and checked it for leaks, so a result could not flatter itself.",
+      title: "Catch the emergency before the model speaks",
+      text: `My first safety rules missed all ${v4.emergencies} emergencies in a test I froze before writing the next version. The rewrite caught ${s3.tp} of ${v4.urgent} urgent messages, but the same coding agent wrote that test and those rules, so it is not independent evidence yet.`,
     },
     {
-      title: "Say what came back",
-      text: `The first prompting pilot was inconclusive (${fmt(rel.mean, 3)}, n = ${relevia.pilot.n}). The safety router caught ${s2.tp} of ${relevia.safety.urgent} urgent test messages, and I keep the ${missed} it missed on the record.`,
+      title: "Don't show what hasn't been checked",
+      text: `Then I found that the check on the model's reply ran after the person had already read it. Fixing that made every reply wait, from ${g2.firstVisible.toFixed(2)} to ${g3.firstVisible.toFixed(2)} seconds in simulation. That trade-off is what I am working out now.`,
     },
   ];
   return (
@@ -114,8 +114,8 @@ function AtAGlance() {
         <Link to="/research/relevia" className="btn btn-primary">
           Read the research story
         </Link>
-        <Link to="/research/relevia#status" className="self-center">
-          What is established, and what is not
+        <Link to="/research/relevia#release" className="self-center">
+          Skip to the reply that had already been read
         </Link>
       </p>
     </section>
@@ -123,8 +123,9 @@ function AtAGlance() {
 }
 
 export default function Home() {
-  const s2 = relevia.safety.detectors.find((d) => d.id === "S2");
-  const s1 = relevia.safety.detectors.find((d) => d.id === "S1");
+  const v4 = relevia.safetyV4;
+  const s3 = v4.detectors.find((d) => d.id === "S3");
+  const s2 = v4.detectors.find((d) => d.id === "S2");
   const rel = relevia.pilot.dimensions[0];
   const relApp = projects.find((p) => p.slug === "relevia-app");
   const lab = experiments[0];
@@ -134,8 +135,13 @@ export default function Home() {
       <Hero />
       <AtAGlance />
 
-      {/* Selected research */}
-      <Section id="selected-research" eyebrow="Selected research" title="Relevia: what a small model can safely do" accent="teal">
+      {/* Research in progress */}
+      <Section
+        id="selected-research"
+        eyebrow="Research in progress"
+        title="Relevia: a small model in the browser, and the rules around it"
+        accent="teal"
+      >
         <article className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-16">
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -144,20 +150,20 @@ export default function Home() {
             </div>
             <p className="text-muted">{relevia.summary}</p>
             <p className="mt-4 text-muted">
-              Before comparing anything, I wanted the comparison itself to be trustworthy. So I built the controls first: conversation-level
-              data partitions with leakage checks, frozen and hashed configurations, and paired analysis with uncertainty intervals. The
-              first prompting pilot was <strong className="font-medium text-ink">inconclusive</strong>, and I report it that way.
+              It began with prompting, and the first pilot was <strong className="font-medium text-ink">inconclusive</strong>. Then the
+              safety rules missed every emergency in a fresh test, and the check on the model&apos;s reply turned out to run after the reply
+              was already on screen. Each fix is on the record, with what it cost.
             </p>
             <dl className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="border-l-2 border-accent/50 py-1 pl-4">
-                <dt className="text-sm text-faint">Safety routing recall, held-out urgent cases</dt>
+                <dt className="text-sm text-faint">Urgent test messages the S3 rules caught, first run</dt>
                 <dd className="num mt-1 text-3xl text-cosmic">
-                  {s1.tp}/{relevia.safety.urgent} <span aria-hidden="true">→</span>
-                  <span className="sr-only">improved to</span> {s2.tp}/{relevia.safety.urgent}
+                  {s3.tp}/{v4.urgent}
                 </dd>
                 <dd className="mt-1 text-sm text-muted">
-                  S1 to S2 (text normalisation), no false positives on {relevia.safety.nonUrgent} ordinary messages. Synthetic,
-                  agent-labelled set.
+                  {s3.fp} of {v4.nonUrgent} ordinary messages flagged. The previous rules caught {s2.tp}, and none of the {v4.emergencies}{" "}
+                  emergencies. The same coding agent wrote these synthetic test messages and the rules, so this is development evidence, not
+                  independent.
                 </dd>
               </div>
               <div className="border-l-2 border-accent/50 py-1 pl-4">
@@ -185,7 +191,7 @@ export default function Home() {
               />
             </div>
             <figcaption className="mt-2 text-sm text-faint">
-              The Relevia app, where the safety-routing rules from this research now run.
+              The Relevia app after its November 2026 redesign. The safety rules from this research run inside it.
             </figcaption>
           </figure>
         </article>
@@ -237,15 +243,7 @@ export default function Home() {
               className="rule-top group relative grid items-center gap-5 py-7 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-8 lg:grid-cols-[14rem_minmax(0,1fr)_auto]"
             >
               <div className="shot aspect-[16/10]">
-                <img
-                  src={p.cover.src}
-                  alt=""
-                  width={p.cover.w}
-                  height={p.cover.h}
-                  loading="lazy"
-                  decoding="async"
-                  className="object-top"
-                />
+                <img src={p.cover.src} alt="" width={p.cover.w} height={p.cover.h} loading="lazy" decoding="async" className="object-top" />
               </div>
               <div>
                 <p className="eyebrow">

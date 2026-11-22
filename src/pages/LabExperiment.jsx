@@ -1,5 +1,7 @@
 import { Link, useParams } from "react-router-dom";
+import ArchitectureMap from "../components/ArchitectureMap";
 import RepoActivity from "../components/RepoActivity";
+import { architectures } from "../data/architecture";
 import { getExperiment, neighbours } from "../data/lab";
 import { mlLab } from "../data/mlLab";
 import { repoTree } from "../data/site";
@@ -201,6 +203,16 @@ export default function LabExperiment() {
         </p>
         <Protocol steps={e.protocol} />
       </Section>
+
+      {architectures[e.slug] && (
+        <Section id="notebook" eyebrow="Structure" title="How the notebook fits together" accent="sky">
+          <p className="prose-body mb-8">
+            The study, part by part. Follow a path to watch the wines travel from the raw file to the final scores, or choose any part to
+            see what it does and which section of the notebook it lives in.
+          </p>
+          <ArchitectureMap arch={architectures[e.slug]} />
+        </Section>
+      )}
 
       <Section id="thinking" eyebrow="Decisions" title="How I thought it through" accent="gold">
         <p className="prose-body mb-8">
